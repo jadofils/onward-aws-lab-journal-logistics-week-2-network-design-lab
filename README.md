@@ -29,8 +29,8 @@ Full brief: [docs/lab-brief.md](docs/lab-brief.md) · Client background: [docs/c
 ## Stages and deliverables
 
 - [x] **Discovery report:** [docs/discovery.md](docs/discovery.md), committed **before** any template, so the Git history shows the thinking came first (fill in your name, then review)
-- [x] **Template and deployment file:** [templates/network-template.yaml](templates/network-template.yaml) and [deployment.yaml](deployment.yaml)
-- [ ] **GitSync stack** using deployment file path `deployment.yaml`
+- [x] **Template and deployment file:** [templates/network-template.yaml](templates/network-template.yaml) and [network-template-deployment.yaml](network-template-deployment.yaml)
+- [ ] **GitSync stack** using deployment file path `network-template-deployment.yaml`
 - [ ] **Evidence:** scripts and screenshots proving each client check
 - [x] **Architecture diagram** of the resources inside the VPC (optional): see [Solution architecture](#solution-architecture)
 - [ ] **Live code review:** walk through the code, demonstrate the client's checks, defend the reasoning
@@ -67,7 +67,7 @@ No security group allows port 22. Engineers use Session Manager, and every serve
 onward-aws-lab-journal-logistics-week-2-network-design-lab/
 ├── README.md            # This file
 ├── .gitignore           # Keeps evidence output, .env and keys out of Git
-├── deployment.yaml      # GitSync deployment file (stack onward-dev-network)
+├── network-template-deployment.yaml  # GitSync deployment file (stack onward-dev-network)
 ├── docs/
 │   ├── lab-brief.md     # Lab brief and client requirements
 │   ├── client-profile.md    # Onward Logistics profile, stakeholders and standards

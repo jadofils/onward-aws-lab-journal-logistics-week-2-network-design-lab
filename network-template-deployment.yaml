@@ -1,5 +1,5 @@
 # ---------------------------------------------------------------------------
-# deployment.yaml - CloudFormation GitSync deployment file (Week 2)
+# network-template-deployment.yaml - CloudFormation GitSync deployment file (Week 2)
 # Project : Onward Logistics - Secure Network for the Order System
 #
 # Tells CloudFormation GitSync which template to deploy and with which
@@ -9,7 +9,7 @@
 #   - Stack name      : onward-dev-network
 #   - Repository      : <your repo>  (via AWS CodeConnections)
 #   - Branch          : main
-#   - Deployment file : deployment.yaml
+#   - Deployment file : network-template-deployment.yaml
 #   - IAM role        : onward-cfn-deploy-role
 #   - Capabilities    : CAPABILITY_NAMED_IAM
 # ---------------------------------------------------------------------------

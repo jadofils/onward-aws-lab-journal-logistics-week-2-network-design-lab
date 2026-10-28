@@ -17,7 +17,7 @@
         <mxCell id="engineers" value="&lt;b&gt;Engineers&lt;/b&gt;&lt;br&gt;(own IAM user)" style="sketch=0;outlineConnect=0;fontColor=#232F3E;fillColor=#232F3D;strokeColor=none;dashed=0;verticalLabelPosition=top;verticalAlign=bottom;align=center;html=1;fontSize=12;aspect=fixed;pointerEvents=1;shape=mxgraph.aws4.users;" vertex="1" parent="1">
           <mxGeometry x="60" y="925" width="78" height="78" as="geometry" />
         </mxCell>
-        <mxCell id="github" value="&lt;b&gt;GitHub repository&lt;/b&gt;&lt;br&gt;week-2-secure-network/&lt;br&gt;deployment.yaml + templates/" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#24292F;fontSize=11;arcSize=6;" vertex="1" parent="1">
+        <mxCell id="github" value="&lt;b&gt;GitHub repository&lt;/b&gt;&lt;br&gt;week-2 network design lab&lt;br&gt;network-template-deployment.yaml&lt;br&gt;+ templates/" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#24292F;fontSize=11;arcSize=6;" vertex="1" parent="1">
           <mxGeometry x="20" y="1050" width="220" height="80" as="geometry" />
         </mxCell>
 

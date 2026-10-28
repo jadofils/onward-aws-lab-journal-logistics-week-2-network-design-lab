@@ -15,7 +15,7 @@ CloudFormation template for the Week 2 network, drawn in [../docs/images/01-arch
 | Internal servers can download updates | `PrivateDefaultRouteA` and `PrivateDefaultRouteB` to a NAT gateway in the same zone; `S3GatewayEndpoint` for Amazon Linux repos |
 | Admin with no open ports and no shared keys | `InstanceRole` with AWS managed `AmazonSSMManagedInstanceCore`; no key pair; no security group allows port 22 |
 | Free Tier Amazon Linux, page with name and lab | `LatestAmiId` (Amazon Linux 2023), `InstanceType` t3.micro or t2.micro; `WebLaunchTemplate` UserData writes the page |
-| Naming and tags | Every name is `onward-<Environment>-<purpose>`; `Project`, `Owner`, `Environment` come from the stack tags in [../deployment.yaml](../deployment.yaml) |
+| Naming and tags | Every name is `onward-<Environment>-<purpose>`; `Project`, `Owner`, `Environment` come from the stack tags in [../network-template-deployment.yaml](../network-template-deployment.yaml) |
 | No inline policies | No `AWS::IAM::Policy` and no `Policies:` property; only `ManagedPolicyArns` |
 | Cost visible to Finance | `NetworkBudget` with alerts at 80% actual and 100% forecast |
 

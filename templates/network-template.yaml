@@ -3,7 +3,7 @@
 # Builds a VPC across two Availability Zones: an internet-facing load balancer,
 # private web and order servers in Auto Scaling groups, one NAT gateway per
 # zone for updates, Session Manager access with no SSH, and a budget alert.
-# GitSync deploys this file whenever main changes (see ../deployment.yaml).
+# GitSync deploys this file whenever main changes (see ../network-template-deployment.yaml).
 # =============================================================================
 
 # Version of the CloudFormation template language. "2010-09-09" is the only valid value.
@@ -22,14 +22,14 @@ Description: >
   Deploy with CAPABILITY_NAMED_IAM.
 
 # -----------------------------------------------------------------------------
-# PARAMETERS - values chosen at deploy time (set in deployment.yaml).
+# PARAMETERS - values chosen at deploy time (set in network-template-deployment.yaml).
 # -----------------------------------------------------------------------------
 # Means: start of the inputs section; each entry below is one input value.
-# AWS uses: the values from deployment.yaml, or the Default when none is given.
+# AWS uses: the values from network-template-deployment.yaml, or the Default when none is given.
 Parameters:
   # Environment name used in every resource name: onward-<Environment>-<purpose>.
   # Means: which copy of the network this is (dev, test or prod).
-  # AWS uses: the value from deployment.yaml; only dev, test or prod is accepted.
+  # AWS uses: the value from network-template-deployment.yaml; only dev, test or prod is accepted.
   Environment:
     Type: String
     Default: dev
@@ -657,7 +657,7 @@ Resources:
         # AWS uses: the latest Amazon Linux 2023 AMI from the LatestAmiId parameter.
         ImageId: !Ref LatestAmiId
         # Means: the server size.
-        # AWS uses: t3.micro (Free Tier eligible) unless deployment.yaml says otherwise.
+        # AWS uses: t3.micro (Free Tier eligible) unless network-template-deployment.yaml says otherwise.
         InstanceType: !Ref InstanceType
         # Means: the role the server runs as.
         # AWS uses: the ARN of InstanceProfile, so the SSM Agent can connect.
