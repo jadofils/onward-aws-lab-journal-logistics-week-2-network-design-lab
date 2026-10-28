@@ -1,0 +1,429 @@
+<mxfile host="drawio" agent="vscode-drawio">
+  <diagram id="architecture" name="1. Architecture">
+    <mxGraphModel dx="1700" dy="1170" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1700" pageHeight="1170" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- Title -->
+        <mxCell id="title" value="&lt;b style=&quot;font-size:18px&quot;&gt;Onward Logistics&lt;/b&gt;&lt;br&gt;Secure Network for the Order System&lt;br&gt;&lt;span style=&quot;color:#545B64&quot;&gt;Solution architecture (Week 2)&lt;/span&gt;" style="text;html=1;align=left;verticalAlign=top;whiteSpace=wrap;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="20" y="20" width="270" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- Outside AWS -->
+        <mxCell id="merchants" value="&lt;b&gt;Merchants and&lt;br&gt;customers&lt;/b&gt;" style="sketch=0;outlineConnect=0;fontColor=#232F3E;fillColor=#232F3D;strokeColor=none;dashed=0;verticalLabelPosition=top;verticalAlign=bottom;align=center;html=1;fontSize=12;aspect=fixed;pointerEvents=1;shape=mxgraph.aws4.users;" vertex="1" parent="1">
+          <mxGeometry x="60" y="195" width="78" height="78" as="geometry" />
+        </mxCell>
+        <mxCell id="engineers" value="&lt;b&gt;Engineers&lt;/b&gt;&lt;br&gt;(own IAM user)" style="sketch=0;outlineConnect=0;fontColor=#232F3E;fillColor=#232F3D;strokeColor=none;dashed=0;verticalLabelPosition=top;verticalAlign=bottom;align=center;html=1;fontSize=12;aspect=fixed;pointerEvents=1;shape=mxgraph.aws4.users;" vertex="1" parent="1">
+          <mxGeometry x="60" y="925" width="78" height="78" as="geometry" />
+        </mxCell>
+        <mxCell id="github" value="&lt;b&gt;GitHub repository&lt;/b&gt;&lt;br&gt;week-2-secure-network/&lt;br&gt;deployment.yaml + templates/" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#24292F;fontSize=11;arcSize=6;" vertex="1" parent="1">
+          <mxGeometry x="20" y="1050" width="220" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- Legend -->
+        <mxCell id="legend" value="&lt;b&gt;Flows&lt;/b&gt;&lt;br&gt;&lt;br&gt;&lt;b style=&quot;color:#147EBA&quot;&gt;1  Inbound:&lt;/b&gt; internet gateway, then the load balancer (HTTP 80), then a healthy web server in either zone, then the order servers (8080).&lt;br&gt;&lt;br&gt;&lt;b style=&quot;color:#D86613&quot;&gt;2  Updates:&lt;/b&gt; private servers go out through the NAT gateway in their own zone. Nothing on the internet can start a connection in.&lt;br&gt;&lt;br&gt;&lt;b style=&quot;color:#248814&quot;&gt;3  Admin:&lt;/b&gt; engineers open a Session Manager session. The SSM Agent on each server calls out on 443 (3b). No port 22, no keys.&lt;br&gt;&lt;br&gt;&lt;b style=&quot;color:#545B64&quot;&gt;4  Deploy:&lt;/b&gt; merge to main, GitSync, CloudFormation builds everything." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#545B64;fontSize=11;align=left;verticalAlign=top;spacing=10;arcSize=3;" vertex="1" parent="1">
+          <mxGeometry x="20" y="320" width="270" height="300" as="geometry" />
+        </mxCell>
+        <mxCell id="rules" value="&lt;b&gt;Route tables&lt;/b&gt;&lt;br&gt;Public: 0.0.0.0/0 to internet gateway&lt;br&gt;Private A: 0.0.0.0/0 to NAT gateway A&lt;br&gt;Private B: 0.0.0.0/0 to NAT gateway B&lt;br&gt;Private A and B: S3 to gateway endpoint&lt;br&gt;&lt;br&gt;&lt;b&gt;Security groups&lt;/b&gt;&lt;br&gt;alb-sg: 80 from the internet&lt;br&gt;web-sg: 80 from alb-sg only&lt;br&gt;order-sg: 8080 from web-sg only&lt;br&gt;&lt;b&gt;No group allows port 22.&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#545B64;fontSize=11;align=left;verticalAlign=top;spacing=10;arcSize=3;" vertex="1" parent="1">
+          <mxGeometry x="20" y="640" width="270" height="230" as="geometry" />
+        </mxCell>
+
+        <!-- AWS cloud and Region -->
+        <mxCell id="cloud" value="AWS Cloud" style="points=[];outlineConnect=0;gradientColor=none;html=1;whiteSpace=wrap;fontSize=12;fontStyle=1;container=0;pointerEvents=0;collapsible=0;recursiveResize=0;shape=mxgraph.aws4.group;grIcon=mxgraph.aws4.group_aws_cloud_alt;strokeColor=#232F3E;fillColor=none;verticalAlign=top;align=left;spacingLeft=30;fontColor=#232F3E;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="300" y="20" width="1390" height="1130" as="geometry" />
+        </mxCell>
+        <mxCell id="region" value="Region eu-west-1 (Ireland)  ·  stack onward-dev-network" style="points=[];outlineConnect=0;gradientColor=none;html=1;whiteSpace=wrap;fontSize=12;fontStyle=1;container=0;pointerEvents=0;collapsible=0;recursiveResize=0;shape=mxgraph.aws4.group;grIcon=mxgraph.aws4.group_region;strokeColor=#00A4A6;fillColor=none;verticalAlign=top;align=left;spacingLeft=30;fontColor=#147EBA;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="320" y="60" width="1350" height="1075" as="geometry" />
+        </mxCell>
+
+        <!-- VPC -->
+        <mxCell id="vpc" value="VPC onward-dev-orders-vpc  ·  10.20.0.0/16" style="points=[];outlineConnect=0;gradientColor=none;html=1;whiteSpace=wrap;fontSize=12;fontStyle=1;container=0;pointerEvents=0;collapsible=0;recursiveResize=0;shape=mxgraph.aws4.group;grIcon=mxgraph.aws4.group_vpc2;strokeColor=#8C4FFF;fillColor=none;verticalAlign=top;align=left;spacingLeft=30;fontColor=#8C4FFF;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="420" y="100" width="990" height="800" as="geometry" />
+        </mxCell>
+
+        <!-- Availability Zones -->
+        <mxCell id="az-a" value="Availability Zone A (eu-west-1a)" style="fillColor=none;strokeColor=#147EBA;dashed=1;verticalAlign=top;fontStyle=1;fontColor=#147EBA;whiteSpace=wrap;html=1;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="450" y="140" width="455" height="740" as="geometry" />
+        </mxCell>
+        <mxCell id="az-b" value="Availability Zone B (eu-west-1b)" style="fillColor=none;strokeColor=#147EBA;dashed=1;verticalAlign=top;fontStyle=1;fontColor=#147EBA;whiteSpace=wrap;html=1;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="925" y="140" width="455" height="740" as="geometry" />
+        </mxCell>
+
+        <!-- Subnets -->
+        <mxCell id="pub-a" value="Public subnet A  ·  10.20.0.0/24" style="points=[];outlineConnect=0;gradientColor=none;html=1;whiteSpace=wrap;fontSize=11;fontStyle=0;container=0;pointerEvents=0;collapsible=0;recursiveResize=0;shape=mxgraph.aws4.group;grIcon=mxgraph.aws4.group_security_group;grStroke=0;strokeColor=#7AA116;fillColor=#F2F6E8;verticalAlign=top;align=left;spacingLeft=30;fontColor=#248814;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="470" y="190" width="415" height="180" as="geometry" />
+        </mxCell>
+        <mxCell id="pub-b" value="Public subnet B  ·  10.20.1.0/24" style="points=[];outlineConnect=0;gradientColor=none;html=1;whiteSpace=wrap;fontSize=11;fontStyle=0;container=0;pointerEvents=0;collapsible=0;recursiveResize=0;shape=mxgraph.aws4.group;grIcon=mxgraph.aws4.group_security_group;grStroke=0;strokeColor=#7AA116;fillColor=#F2F6E8;verticalAlign=top;align=left;spacingLeft=30;fontColor=#248814;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="945" y="190" width="415" height="180" as="geometry" />
+        </mxCell>
+        <mxCell id="web-sub-a" value="Private web subnet A  ·  10.20.10.0/24" style="points=[];outlineConnect=0;gradientColor=none;html=1;whiteSpace=wrap;fontSize=11;fontStyle=0;container=0;pointerEvents=0;collapsible=0;recursiveResize=0;shape=mxgraph.aws4.group;grIcon=mxgraph.aws4.group_security_group;grStroke=0;strokeColor=#00A4A6;fillColor=#E6F6F7;verticalAlign=top;align=left;spacingLeft=30;fontColor=#147EBA;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="470" y="395" width="415" height="215" as="geometry" />
+        </mxCell>
+        <mxCell id="web-sub-b" value="Private web subnet B  ·  10.20.11.0/24" style="points=[];outlineConnect=0;gradientColor=none;html=1;whiteSpace=wrap;fontSize=11;fontStyle=0;container=0;pointerEvents=0;collapsible=0;recursiveResize=0;shape=mxgraph.aws4.group;grIcon=mxgraph.aws4.group_security_group;grStroke=0;strokeColor=#00A4A6;fillColor=#E6F6F7;verticalAlign=top;align=left;spacingLeft=30;fontColor=#147EBA;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="945" y="395" width="415" height="215" as="geometry" />
+        </mxCell>
+        <mxCell id="order-sub-a" value="Private order subnet A  ·  10.20.20.0/24" style="points=[];outlineConnect=0;gradientColor=none;html=1;whiteSpace=wrap;fontSize=11;fontStyle=0;container=0;pointerEvents=0;collapsible=0;recursiveResize=0;shape=mxgraph.aws4.group;grIcon=mxgraph.aws4.group_security_group;grStroke=0;strokeColor=#00A4A6;fillColor=#E6F6F7;verticalAlign=top;align=left;spacingLeft=30;fontColor=#147EBA;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="470" y="635" width="415" height="225" as="geometry" />
+        </mxCell>
+        <mxCell id="order-sub-b" value="Private order subnet B  ·  10.20.21.0/24" style="points=[];outlineConnect=0;gradientColor=none;html=1;whiteSpace=wrap;fontSize=11;fontStyle=0;container=0;pointerEvents=0;collapsible=0;recursiveResize=0;shape=mxgraph.aws4.group;grIcon=mxgraph.aws4.group_security_group;grStroke=0;strokeColor=#00A4A6;fillColor=#E6F6F7;verticalAlign=top;align=left;spacingLeft=30;fontColor=#147EBA;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="945" y="635" width="415" height="225" as="geometry" />
+        </mxCell>
+
+        <!-- Auto Scaling groups (span both zones) -->
+        <mxCell id="web-asg" value="" style="points=[];outlineConnect=0;gradientColor=none;html=1;whiteSpace=wrap;fontSize=11;container=0;pointerEvents=0;collapsible=0;recursiveResize=0;shape=mxgraph.aws4.group;grIcon=mxgraph.aws4.group_auto_scaling_group;strokeColor=#D86613;fillColor=none;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="600" y="420" width="730" height="170" as="geometry" />
+        </mxCell>
+        <mxCell id="web-asg-label" value="&lt;b&gt;onward-dev-web-asg&lt;/b&gt;&lt;br&gt;Auto Scaling, min 2, one per zone" style="text;html=1;align=center;verticalAlign=middle;fontSize=11;fontColor=#D86613;" vertex="1" parent="1">
+          <mxGeometry x="815" y="550" width="200" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="order-asg" value="" style="points=[];outlineConnect=0;gradientColor=none;html=1;whiteSpace=wrap;fontSize=11;container=0;pointerEvents=0;collapsible=0;recursiveResize=0;shape=mxgraph.aws4.group;grIcon=mxgraph.aws4.group_auto_scaling_group;strokeColor=#D86613;fillColor=none;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="600" y="665" width="730" height="160" as="geometry" />
+        </mxCell>
+        <mxCell id="order-asg-label" value="&lt;b&gt;onward-dev-order-asg&lt;/b&gt;&lt;br&gt;Auto Scaling, min 2, one per zone" style="text;html=1;align=center;verticalAlign=middle;fontSize=11;fontColor=#D86613;" vertex="1" parent="1">
+          <mxGeometry x="815" y="785" width="200" height="34" as="geometry" />
+        </mxCell>
+
+        <!-- Network resources -->
+        <mxCell id="igw" value="Internet&lt;br&gt;gateway" style="sketch=0;outlineConnect=0;fontColor=#232F3E;gradientColor=none;fillColor=#8C4FFF;strokeColor=none;dashed=0;verticalLabelPosition=middle;labelPosition=left;verticalAlign=middle;align=right;html=1;fontSize=11;aspect=fixed;pointerEvents=1;shape=mxgraph.aws4.internet_gateway;labelBackgroundColor=#ffffff;" vertex="1" parent="1">
+          <mxGeometry x="396" y="210" width="48" height="48" as="geometry" />
+        </mxCell>
+        <mxCell id="alb" value="&lt;b&gt;Application Load Balancer&lt;/b&gt;&lt;br&gt;onward-dev-web-alb&lt;br&gt;one node in each public subnet" style="sketch=0;outlineConnect=0;fontColor=#232F3E;gradientColor=none;fillColor=#8C4FFF;strokeColor=none;dashed=0;verticalLabelPosition=middle;labelPosition=right;verticalAlign=middle;align=left;html=1;fontSize=11;aspect=fixed;pointerEvents=1;shape=mxgraph.aws4.application_load_balancer;spacingLeft=4;" vertex="1" parent="1">
+          <mxGeometry x="891" y="210" width="48" height="48" as="geometry" />
+        </mxCell>
+        <mxCell id="nat-a" value="&lt;b&gt;NAT gateway A&lt;/b&gt;&lt;br&gt;+ Elastic IP" style="sketch=0;outlineConnect=0;fontColor=#232F3E;gradientColor=none;fillColor=#8C4FFF;strokeColor=none;dashed=0;verticalLabelPosition=middle;labelPosition=right;verticalAlign=middle;align=left;html=1;fontSize=11;aspect=fixed;pointerEvents=1;shape=mxgraph.aws4.nat_gateway;spacingLeft=4;" vertex="1" parent="1">
+          <mxGeometry x="560" y="280" width="48" height="48" as="geometry" />
+        </mxCell>
+        <mxCell id="nat-b" value="&lt;b&gt;NAT gateway B&lt;/b&gt;&lt;br&gt;+ Elastic IP" style="sketch=0;outlineConnect=0;fontColor=#232F3E;gradientColor=none;fillColor=#8C4FFF;strokeColor=none;dashed=0;verticalLabelPosition=middle;labelPosition=left;verticalAlign=middle;align=right;html=1;fontSize=11;aspect=fixed;pointerEvents=1;shape=mxgraph.aws4.nat_gateway;spacingRight=4;" vertex="1" parent="1">
+          <mxGeometry x="1290" y="280" width="48" height="48" as="geometry" />
+        </mxCell>
+        <mxCell id="s3ep" value="S3 gateway&lt;br&gt;endpoint (free)" style="sketch=0;outlineConnect=0;fontColor=#232F3E;gradientColor=none;fillColor=#8C4FFF;strokeColor=none;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=11;aspect=fixed;pointerEvents=1;shape=mxgraph.aws4.endpoints;labelBackgroundColor=#ffffff;" vertex="1" parent="1">
+          <mxGeometry x="1386" y="500" width="48" height="48" as="geometry" />
+        </mxCell>
+
+        <!-- Servers -->
+        <mxCell id="web-a" value="&lt;b&gt;Web server A&lt;/b&gt;&lt;br&gt;Amazon Linux 2023&lt;br&gt;page: name + lab" style="sketch=0;outlineConnect=0;fontColor=#232F3E;gradientColor=none;fillColor=#ED7100;strokeColor=none;dashed=0;verticalLabelPosition=middle;labelPosition=right;verticalAlign=middle;align=left;html=1;fontSize=11;aspect=fixed;pointerEvents=1;shape=mxgraph.aws4.instance2;spacingLeft=4;" vertex="1" parent="1">
+          <mxGeometry x="700" y="500" width="48" height="48" as="geometry" />
+        </mxCell>
+        <mxCell id="web-b" value="&lt;b&gt;Web server B&lt;/b&gt;&lt;br&gt;Amazon Linux 2023&lt;br&gt;page: name + lab" style="sketch=0;outlineConnect=0;fontColor=#232F3E;gradientColor=none;fillColor=#ED7100;strokeColor=none;dashed=0;verticalLabelPosition=middle;labelPosition=right;verticalAlign=middle;align=left;html=1;fontSize=11;aspect=fixed;pointerEvents=1;shape=mxgraph.aws4.instance2;spacingLeft=4;" vertex="1" parent="1">
+          <mxGeometry x="1180" y="500" width="48" height="48" as="geometry" />
+        </mxCell>
+        <mxCell id="order-a" value="&lt;b&gt;Order server A&lt;/b&gt;&lt;br&gt;Amazon Linux 2023&lt;br&gt;port 8080" style="sketch=0;outlineConnect=0;fontColor=#232F3E;gradientColor=none;fillColor=#ED7100;strokeColor=none;dashed=0;verticalLabelPosition=middle;labelPosition=right;verticalAlign=middle;align=left;html=1;fontSize=11;aspect=fixed;pointerEvents=1;shape=mxgraph.aws4.instance2;spacingLeft=4;" vertex="1" parent="1">
+          <mxGeometry x="700" y="735" width="48" height="48" as="geometry" />
+        </mxCell>
+        <mxCell id="order-b" value="&lt;b&gt;Order server B&lt;/b&gt;&lt;br&gt;Amazon Linux 2023&lt;br&gt;port 8080" style="sketch=0;outlineConnect=0;fontColor=#232F3E;gradientColor=none;fillColor=#ED7100;strokeColor=none;dashed=0;verticalLabelPosition=middle;labelPosition=right;verticalAlign=middle;align=left;html=1;fontSize=11;aspect=fixed;pointerEvents=1;shape=mxgraph.aws4.instance2;spacingLeft=4;" vertex="1" parent="1">
+          <mxGeometry x="1180" y="735" width="48" height="48" as="geometry" />
+        </mxCell>
+
+        <!-- Regional services (right column) -->
+        <mxCell id="s3" value="&lt;b&gt;Amazon S3&lt;/b&gt;&lt;br&gt;Amazon Linux&lt;br&gt;package repos" style="sketch=0;points=[];outlineConnect=0;fontColor=#232F3E;fillColor=#7AA116;strokeColor=#ffffff;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=11;fontStyle=0;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.s3;" vertex="1" parent="1">
+          <mxGeometry x="1560" y="500" width="48" height="48" as="geometry" />
+        </mxCell>
+        <mxCell id="role" value="&lt;b&gt;IAM role&lt;/b&gt;&lt;br&gt;onward-dev-ec2-ssm-role&lt;br&gt;AmazonSSMManaged-&lt;br&gt;InstanceCore&lt;br&gt;(on every server)" style="sketch=0;outlineConnect=0;fontColor=#232F3E;gradientColor=none;fillColor=#DD344C;strokeColor=none;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=10;aspect=fixed;pointerEvents=1;shape=mxgraph.aws4.role;" vertex="1" parent="1">
+          <mxGeometry x="1555" y="700" width="58" height="33" as="geometry" />
+        </mxCell>
+        <mxCell id="budgets" value="&lt;b&gt;AWS Budgets&lt;/b&gt;&lt;br&gt;monthly alert&lt;br&gt;to Finance" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E9F3E6;strokeColor=#7AA116;fontSize=11;arcSize=10;" vertex="1" parent="1">
+          <mxGeometry x="1530" y="930" width="110" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Regional services (bottom band) -->
+        <mxCell id="ssm" value="&lt;b&gt;Systems Manager&lt;/b&gt;&lt;br&gt;Session Manager" style="sketch=0;points=[];outlineConnect=0;fontColor=#232F3E;fillColor=#E7157B;strokeColor=#ffffff;dashed=0;verticalLabelPosition=middle;labelPosition=right;verticalAlign=middle;align=left;html=1;fontSize=11;fontStyle=0;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.systems_manager;spacingLeft=4;" vertex="1" parent="1">
+          <mxGeometry x="616" y="940" width="48" height="48" as="geometry" />
+        </mxCell>
+        <mxCell id="trail" value="&lt;b&gt;CloudTrail&lt;/b&gt;&lt;br&gt;records each session&lt;br&gt;and every change" style="sketch=0;points=[];outlineConnect=0;fontColor=#232F3E;fillColor=#E7157B;strokeColor=#ffffff;dashed=0;verticalLabelPosition=middle;labelPosition=right;verticalAlign=middle;align=left;html=1;fontSize=11;fontStyle=0;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.cloudtrail;spacingLeft=4;" vertex="1" parent="1">
+          <mxGeometry x="860" y="940" width="48" height="48" as="geometry" />
+        </mxCell>
+        <mxCell id="cfn" value="&lt;b&gt;CloudFormation&lt;/b&gt; (GitSync)&lt;br&gt;builds the whole VPC&lt;br&gt;from the repository" style="sketch=0;points=[];outlineConnect=0;fontColor=#232F3E;fillColor=#E7157B;strokeColor=#ffffff;dashed=0;verticalLabelPosition=middle;labelPosition=right;verticalAlign=middle;align=left;html=1;fontSize=11;fontStyle=0;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.cloudformation;spacingLeft=4;" vertex="1" parent="1">
+          <mxGeometry x="1120" y="940" width="48" height="48" as="geometry" />
+        </mxCell>
+
+        <!-- Flow 1: inbound (blue) -->
+        <mxCell id="e-merch-igw" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#147EBA;" edge="1" parent="1" source="merchants" target="igw">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-igw-alb" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#147EBA;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="igw" target="alb">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-alb-weba" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#147EBA;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="alb" target="web-a">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="915" y="470" />
+              <mxPoint x="724" y="470" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e-alb-webb" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#147EBA;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="alb" target="web-b">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="915" y="470" />
+              <mxPoint x="1204" y="470" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e-weba-ordera" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#147EBA;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="web-a" target="order-a">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-webb-orderb" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#147EBA;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="web-b" target="order-b">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Flow 2: outbound updates (orange, dashed) -->
+        <mxCell id="e-ordera-nata" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#D86613;dashed=1;exitX=0.5;exitY=1;entryX=0.5;entryY=1;" edge="1" parent="1" source="order-a" target="nat-a">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="724" y="845" />
+              <mxPoint x="460" y="845" />
+              <mxPoint x="460" y="345" />
+              <mxPoint x="584" y="345" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e-orderb-natb" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#D86613;dashed=1;exitX=0.5;exitY=1;entryX=0.5;entryY=1;" edge="1" parent="1" source="order-b" target="nat-b">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1204" y="845" />
+              <mxPoint x="1370" y="845" />
+              <mxPoint x="1370" y="345" />
+              <mxPoint x="1314" y="345" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e-nata-igw" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#D86613;dashed=1;exitX=0;exitY=0.5;entryX=0.5;entryY=1;" edge="1" parent="1" source="nat-a" target="igw">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="420" y="304" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e-natb-igw" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#D86613;dashed=1;exitX=0.5;exitY=0;entryX=0.5;entryY=0;" edge="1" parent="1" source="nat-b" target="igw">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1314" y="172" />
+              <mxPoint x="420" y="172" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e-s3ep-s3" value="S3 traffic&lt;br&gt;skips NAT" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#7AA116;dashed=1;fontSize=10;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s3ep" target="s3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Flow 3: admin (green) -->
+        <mxCell id="e-eng-ssm" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#248814;" edge="1" parent="1" source="engineers" target="ssm">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-order-ssm" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#248814;dashed=1;exitX=0.0548;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="order-asg" target="ssm">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Flow 4: deploy (grey) -->
+        <mxCell id="e-gh-cfn" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#545B64;exitX=1;exitY=0.5;entryX=0.5;entryY=1;" edge="1" parent="1" source="github" target="cfn">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-cfn-vpc" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#545B64;exitX=0.5;exitY=0;entryX=0.7313;entryY=1;" edge="1" parent="1" source="cfn" target="vpc">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Numbered badges -->
+        <mxCell id="b1" value="1" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#147EBA;strokeColor=#ffffff;fontColor=#ffffff;fontStyle=1;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="255" y="208" width="24" height="24" as="geometry" />
+        </mxCell>
+        <mxCell id="b2" value="2" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#D86613;strokeColor=#ffffff;fontColor=#ffffff;fontStyle=1;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="448" y="580" width="24" height="24" as="geometry" />
+        </mxCell>
+        <mxCell id="b3" value="3" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#248814;strokeColor=#ffffff;fontColor=#ffffff;fontStyle=1;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="400" y="938" width="24" height="24" as="geometry" />
+        </mxCell>
+        <mxCell id="b3b" value="3b" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#248814;strokeColor=#ffffff;fontColor=#ffffff;fontStyle=1;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="628" y="872" width="24" height="24" as="geometry" />
+        </mxCell>
+        <mxCell id="b4" value="4" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#545B64;strokeColor=#ffffff;fontColor=#ffffff;fontStyle=1;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="600" y="1066" width="24" height="24" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+
+  <diagram id="traffic" name="2. Traffic and security groups">
+    <mxGraphModel dx="1520" dy="1000" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1520" pageHeight="1000" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <mxCell id="t-title" value="&lt;b style=&quot;font-size:18px&quot;&gt;Who can talk to whom&lt;/b&gt;&lt;br&gt;&lt;span style=&quot;color:#545B64&quot;&gt;Each row is one kind of traffic. Every box says which rule allows it.&lt;/span&gt;" style="text;html=1;align=left;verticalAlign=top;whiteSpace=wrap;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="20" y="20" width="800" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Row labels -->
+        <mxCell id="r1" value="&lt;b&gt;1  Customer request&lt;/b&gt;&lt;br&gt;(CTO)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#147EBA;strokeColor=none;fontColor=#ffffff;fontSize=12;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry x="20" y="110" width="150" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="r2" value="&lt;b&gt;2  Software update&lt;/b&gt;&lt;br&gt;(Head of Operations)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D86613;strokeColor=none;fontColor=#ffffff;fontSize=12;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry x="20" y="320" width="150" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="r3" value="&lt;b&gt;3  Engineer admin&lt;/b&gt;&lt;br&gt;(Head of Operations, Head of Security)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#248814;strokeColor=none;fontColor=#ffffff;fontSize=12;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry x="20" y="530" width="150" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="r4" value="&lt;b&gt;4  Attack from the internet&lt;/b&gt;&lt;br&gt;(Head of Security)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DD344C;strokeColor=none;fontColor=#ffffff;fontSize=12;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry x="20" y="740" width="150" height="110" as="geometry" />
+        </mxCell>
+
+        <!-- Row 1 -->
+        <mxCell id="a1" value="&lt;b&gt;Browser&lt;/b&gt;&lt;br&gt;http://&amp;lt;ALB DNS name&amp;gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#545B64;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="210" y="120" width="210" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="a2" value="&lt;b&gt;Internet gateway&lt;/b&gt;&lt;br&gt;public route table:&lt;br&gt;0.0.0.0/0 to IGW" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EFE8FF;strokeColor=#8C4FFF;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="470" y="120" width="210" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="a3" value="&lt;b&gt;Load balancer&lt;/b&gt;&lt;br&gt;alb-sg: in TCP 80 from 0.0.0.0/0&lt;br&gt;health check / every few seconds" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EFE8FF;strokeColor=#8C4FFF;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="730" y="120" width="210" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="a4" value="&lt;b&gt;Web server&lt;/b&gt; (private)&lt;br&gt;web-sg: in TCP 80&lt;br&gt;from alb-sg only" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FDF0E6;strokeColor=#ED7100;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="990" y="120" width="210" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="a5" value="&lt;b&gt;Order server&lt;/b&gt; (private)&lt;br&gt;order-sg: in TCP 8080&lt;br&gt;from web-sg only" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FDF0E6;strokeColor=#ED7100;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1250" y="120" width="210" height="90" as="geometry" />
+        </mxCell>
+
+        <!-- Row 2 -->
+        <mxCell id="b1" value="&lt;b&gt;Order server&lt;/b&gt;&lt;br&gt;sudo dnf install -y htop" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FDF0E6;strokeColor=#ED7100;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="210" y="330" width="210" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="b2" value="&lt;b&gt;Private route table&lt;/b&gt;&lt;br&gt;0.0.0.0/0 to the NAT gateway&lt;br&gt;in the &lt;b&gt;same&lt;/b&gt; zone" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E6F6F7;strokeColor=#00A4A6;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="470" y="330" width="210" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="b3" value="&lt;b&gt;NAT gateway&lt;/b&gt; (public subnet)&lt;br&gt;swaps the private address&lt;br&gt;for its Elastic IP" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EFE8FF;strokeColor=#8C4FFF;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="730" y="330" width="210" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="b4" value="&lt;b&gt;Internet gateway&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EFE8FF;strokeColor=#8C4FFF;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="990" y="330" width="210" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="b5" value="&lt;b&gt;Package repository&lt;/b&gt;&lt;br&gt;the reply returns on the&lt;br&gt;same connection" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#545B64;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1250" y="330" width="210" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="b-note" value="Amazon Linux repositories are hosted in Amazon S3, so in practice most updates take the free S3 gateway endpoint and never touch the NAT gateway." style="text;html=1;align=left;verticalAlign=top;whiteSpace=wrap;fontSize=11;fontColor=#545B64;fontStyle=2;" vertex="1" parent="1">
+          <mxGeometry x="210" y="430" width="990" height="30" as="geometry" />
+        </mxCell>
+
+        <!-- Row 3 -->
+        <mxCell id="c1" value="&lt;b&gt;Engineer&lt;/b&gt;&lt;br&gt;signs in with their own IAM user&lt;br&gt;(console or AWS CLI)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#545B64;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="210" y="540" width="210" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="c2" value="&lt;b&gt;IAM check&lt;/b&gt;&lt;br&gt;is this person allowed&lt;br&gt;ssm:StartSession?" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FBE9EC;strokeColor=#DD344C;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="470" y="540" width="210" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="c3" value="&lt;b&gt;Session Manager&lt;/b&gt;&lt;br&gt;opens the session and&lt;br&gt;records it in CloudTrail" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FCE7F1;strokeColor=#E7157B;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="730" y="540" width="210" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="c4" value="&lt;b&gt;SSM Agent&lt;/b&gt; on the server&lt;br&gt;already connected &lt;b&gt;out&lt;/b&gt; on 443&lt;br&gt;(role: AmazonSSMManagedInstanceCore)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FDF0E6;strokeColor=#ED7100;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="990" y="540" width="210" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="c5" value="&lt;b&gt;Shell on the server&lt;/b&gt;&lt;br&gt;no port 22, no SSH key,&lt;br&gt;access removed in one place" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E9F3E6;strokeColor=#248814;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1250" y="540" width="210" height="90" as="geometry" />
+        </mxCell>
+
+        <!-- Row 4 -->
+        <mxCell id="d1" value="&lt;b&gt;Anyone on the internet&lt;/b&gt;&lt;br&gt;tries to reach an&lt;br&gt;internal server" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#545B64;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="210" y="750" width="210" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="d2" value="&lt;b&gt;No public IP&lt;/b&gt;&lt;br&gt;private servers have no&lt;br&gt;address on the internet" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FBE9EC;strokeColor=#DD344C;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="470" y="750" width="210" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="d3" value="&lt;b&gt;No route in&lt;/b&gt;&lt;br&gt;a NAT gateway only lets&lt;br&gt;replies back, never new&lt;br&gt;connections" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FBE9EC;strokeColor=#DD344C;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="730" y="750" width="210" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="d4" value="&lt;b&gt;Security groups&lt;/b&gt;&lt;br&gt;only alb-sg and web-sg are&lt;br&gt;allowed in; port 22 is closed&lt;br&gt;everywhere" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FBE9EC;strokeColor=#DD344C;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="990" y="750" width="210" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="d5" value="&lt;b&gt;Connection fails&lt;/b&gt;&lt;br&gt;three separate layers&lt;br&gt;each block it on their own" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DD344C;strokeColor=none;fontColor=#ffffff;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1250" y="750" width="210" height="90" as="geometry" />
+        </mxCell>
+
+        <!-- Arrows -->
+        <mxCell id="ea1" style="html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#147EBA;" edge="1" parent="1" source="a1" target="a2"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="ea2" style="html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#147EBA;" edge="1" parent="1" source="a2" target="a3"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="ea3" style="html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#147EBA;" edge="1" parent="1" source="a3" target="a4"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="ea4" style="html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#147EBA;" edge="1" parent="1" source="a4" target="a5"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="eb1" style="html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#D86613;dashed=1;" edge="1" parent="1" source="b1" target="b2"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="eb2" style="html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#D86613;dashed=1;" edge="1" parent="1" source="b2" target="b3"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="eb3" style="html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#D86613;dashed=1;" edge="1" parent="1" source="b3" target="b4"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="eb4" style="html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#D86613;dashed=1;" edge="1" parent="1" source="b4" target="b5"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="ec1" style="html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#248814;" edge="1" parent="1" source="c1" target="c2"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="ec2" value="allowed" style="html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#248814;fontSize=10;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="c2" target="c3"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="ec3" style="html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#248814;startArrow=block;startFill=1;" edge="1" parent="1" source="c3" target="c4"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="ec4" style="html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#248814;" edge="1" parent="1" source="c4" target="c5"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="ed1" value="✖" style="html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#DD344C;fontColor=#DD344C;fontSize=14;fontStyle=1;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="d1" target="d2"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="ed2" value="✖" style="html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#DD344C;fontColor=#DD344C;fontSize=14;fontStyle=1;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="d2" target="d3"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="ed3" value="✖" style="html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#DD344C;fontColor=#DD344C;fontSize=14;fontStyle=1;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="d3" target="d4"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="ed4" style="html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#DD344C;" edge="1" parent="1" source="d4" target="d5"><mxGeometry relative="1" as="geometry" /></mxCell>
+
+        <mxCell id="t-foot" value="&lt;b&gt;How to prove it live:&lt;/b&gt;  1 open the ALB DNS name and refresh to see both servers  ·  2 run dnf install in a session on an order server  ·  3 start-session on each internal server  ·  4 curl an order server's private IP from your laptop: it times out" style="text;html=1;align=left;verticalAlign=top;whiteSpace=wrap;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="20" y="890" width="1440" height="50" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+
+  <diagram id="az-failure" name="3. When a zone fails">
+    <mxGraphModel dx="1520" dy="700" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1520" pageHeight="440" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <mxCell id="f-title" value="&lt;b style=&quot;font-size:18px&quot;&gt;What happens when Availability Zone A goes down&lt;/b&gt;&lt;br&gt;&lt;span style=&quot;color:#545B64&quot;&gt;The answer to the CTO, and to the client check &quot;explain what happens to the front end if a component goes down&quot;&lt;/span&gt;" style="text;html=1;align=left;verticalAlign=top;whiteSpace=wrap;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="20" y="20" width="1200" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="s1" value="&lt;b&gt;1  Zone A fails&lt;/b&gt;&lt;br&gt;&lt;br&gt;Power or network loss in one data center. Web server A, order server A and NAT gateway A stop answering." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FBE9EC;strokeColor=#DD344C;fontSize=12;align=left;verticalAlign=top;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="20" y="110" width="260" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="s2" value="&lt;b&gt;2  Health checks fail&lt;/b&gt;&lt;br&gt;&lt;br&gt;The load balancer checks each web server every few seconds. After a few failed checks it marks web server A unhealthy." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EFE8FF;strokeColor=#8C4FFF;fontSize=12;align=left;verticalAlign=top;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="320" y="110" width="260" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="s3" value="&lt;b&gt;3  Traffic moves to zone B&lt;/b&gt;&lt;br&gt;&lt;br&gt;The load balancer sends every request to web server B. Merchants keep using the same address and see no error." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E6F0F8;strokeColor=#147EBA;fontSize=12;align=left;verticalAlign=top;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="620" y="110" width="260" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="s4" value="&lt;b&gt;4  Auto Scaling replaces it&lt;/b&gt;&lt;br&gt;&lt;br&gt;Each group sees it has fewer than 2 healthy servers and launches a new one in a zone that works. UserData installs the same page." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FDF0E6;strokeColor=#ED7100;fontSize=12;align=left;verticalAlign=top;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="920" y="110" width="260" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="s5" value="&lt;b&gt;5  Zone B keeps working&lt;/b&gt;&lt;br&gt;&lt;br&gt;Zone B servers still get updates through NAT gateway B, because each zone has its own NAT gateway and route table." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E9F3E6;strokeColor=#248814;fontSize=12;align=left;verticalAlign=top;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="1220" y="110" width="260" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="es1" style="html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#545B64;" edge="1" parent="1" source="s1" target="s2"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="es2" style="html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#545B64;" edge="1" parent="1" source="s2" target="s3"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="es3" style="html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#545B64;" edge="1" parent="1" source="s3" target="s4"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="es4" style="html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#545B64;" edge="1" parent="1" source="s4" target="s5"><mxGeometry relative="1" as="geometry" /></mxCell>
+
+        <mxCell id="other" value="&lt;b&gt;Other parts that can fail&lt;/b&gt;&lt;br&gt;&lt;br&gt;&lt;b&gt;One web server crashes:&lt;/b&gt; same as steps 2 to 4, but only for that server. The other zone is not affected.&lt;br&gt;&lt;b&gt;One NAT gateway fails:&lt;/b&gt; only servers in that zone lose updates. The website keeps working, because customer traffic does not use NAT.&lt;br&gt;&lt;b&gt;The load balancer:&lt;/b&gt; AWS runs it in both public subnets and replaces failed nodes itself.&lt;br&gt;&lt;b&gt;Someone deletes a server by hand:&lt;/b&gt; Auto Scaling launches a new one; CloudFormation drift detection shows the change." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#545B64;fontSize=12;align=left;verticalAlign=top;spacing=12;arcSize=4;" vertex="1" parent="1">
+          <mxGeometry x="20" y="270" width="860" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="limits" value="&lt;b&gt;What this design does not survive&lt;/b&gt;&lt;br&gt;&lt;br&gt;&lt;b&gt;Loss of the whole Region:&lt;/b&gt; everything is in eu-west-1. A second Region would roughly double the cost.&lt;br&gt;&lt;b&gt;Single NAT option:&lt;/b&gt; if dev uses one NAT gateway to save about $33 a month, losing its zone cuts updates for both zones." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FBE9EC;strokeColor=#DD344C;fontSize=12;align=left;verticalAlign=top;spacing=12;arcSize=4;" vertex="1" parent="1">
+          <mxGeometry x="920" y="270" width="560" height="140" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+
+  <diagram id="cost" name="4. Monthly cost">
+    <mxGraphModel dx="1300" dy="760" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1300" pageHeight="620" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <mxCell id="c-title" value="&lt;b style=&quot;font-size:18px&quot;&gt;What the network costs, and why&lt;/b&gt;&lt;br&gt;&lt;span style=&quot;color:#545B64&quot;&gt;For the Finance Lead. Approximate, 730 hours a month, US East list prices; confirm eu-west-1 in the AWS Pricing Calculator.&lt;/span&gt;" style="text;html=1;align=left;verticalAlign=top;whiteSpace=wrap;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="20" y="20" width="1200" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="costs" value="&lt;table style=&quot;width:100%;border-collapse:collapse;font-size:12px&quot; cellpadding=&quot;6&quot;&gt;&lt;tr style=&quot;background:#232F3E;color:#ffffff&quot;&gt;&lt;th align=&quot;left&quot;&gt;Item&lt;/th&gt;&lt;th align=&quot;left&quot;&gt;Price&lt;/th&gt;&lt;th align=&quot;right&quot;&gt;Per month&lt;/th&gt;&lt;th align=&quot;left&quot;&gt;Why we pay for it&lt;/th&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;Application Load Balancer&lt;/td&gt;&lt;td&gt;$0.0225/h + ~1 LCU at $0.008/h&lt;/td&gt;&lt;td align=&quot;right&quot;&gt;~$22&lt;/td&gt;&lt;td&gt;Only door from the internet; moves traffic away from a failed zone&lt;/td&gt;&lt;/tr&gt;&lt;tr style=&quot;background:#F5F5F5&quot;&gt;&lt;td&gt;2 NAT gateways&lt;/td&gt;&lt;td&gt;2 x $0.045/h + $0.045/GB&lt;/td&gt;&lt;td align=&quot;right&quot;&gt;~$66 + data&lt;/td&gt;&lt;td&gt;Private servers get updates; one per zone so one failure does not cut both&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;4 public IPv4 addresses&lt;/td&gt;&lt;td&gt;4 x $0.005/h&lt;/td&gt;&lt;td align=&quot;right&quot;&gt;~$15&lt;/td&gt;&lt;td&gt;2 for the load balancer, 2 Elastic IPs for the NAT gateways&lt;/td&gt;&lt;/tr&gt;&lt;tr style=&quot;background:#F5F5F5&quot;&gt;&lt;td&gt;S3 gateway endpoint&lt;/td&gt;&lt;td&gt;free&lt;/td&gt;&lt;td align=&quot;right&quot;&gt;$0&lt;/td&gt;&lt;td&gt;Keeps S3 traffic (package repos) off the NAT gateway, lowering data charges&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;VPC, subnets, route tables, security groups, Session Manager&lt;/td&gt;&lt;td&gt;free&lt;/td&gt;&lt;td align=&quot;right&quot;&gt;$0&lt;/td&gt;&lt;td&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr style=&quot;background:#F5F5F5&quot;&gt;&lt;td&gt;EC2 (4 Free Tier eligible servers)&lt;/td&gt;&lt;td&gt;Free Tier covers part&lt;/td&gt;&lt;td align=&quot;right&quot;&gt;to confirm&lt;/td&gt;&lt;td&gt;Two web, two order; at least one of each per zone&lt;/td&gt;&lt;/tr&gt;&lt;tr style=&quot;background:#E6F0F8;font-weight:bold&quot;&gt;&lt;td&gt;Total before EC2 and data&lt;/td&gt;&lt;td&gt;&lt;/td&gt;&lt;td align=&quot;right&quot;&gt;~$103&lt;/td&gt;&lt;td&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#545B64;fontSize=12;align=left;verticalAlign=top;spacing=0;overflow=fill;" vertex="1" parent="1">
+          <mxGeometry x="20" y="100" width="1250" height="230" as="geometry" />
+        </mxCell>
+
+        <mxCell id="rejected" value="&lt;table style=&quot;width:100%;border-collapse:collapse;font-size:12px&quot; cellpadding=&quot;6&quot;&gt;&lt;tr style=&quot;background:#DD344C;color:#ffffff&quot;&gt;&lt;th align=&quot;left&quot;&gt;Alternative we rejected&lt;/th&gt;&lt;th align=&quot;left&quot;&gt;Cost effect&lt;/th&gt;&lt;th align=&quot;left&quot;&gt;Why not&lt;/th&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;One NAT gateway for both zones&lt;/td&gt;&lt;td&gt;saves ~$33/month&lt;/td&gt;&lt;td&gt;Losing its zone cuts updates for both zones. Kept as a parameter for dev only.&lt;/td&gt;&lt;/tr&gt;&lt;tr style=&quot;background:#F5F5F5&quot;&gt;&lt;td&gt;VPC interface endpoints for Systems Manager&lt;/td&gt;&lt;td&gt;adds ~$44/month&lt;/td&gt;&lt;td&gt;3 endpoints x 2 zones x $0.01/h, and NAT is still needed for non-S3 updates&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;Self-managed NAT instance&lt;/td&gt;&lt;td&gt;cheaper per hour&lt;/td&gt;&lt;td&gt;The small platform team would have to patch it and keep it highly available&lt;/td&gt;&lt;/tr&gt;&lt;tr style=&quot;background:#F5F5F5&quot;&gt;&lt;td&gt;Bastion host with SSH&lt;/td&gt;&lt;td&gt;one more server&lt;/td&gt;&lt;td&gt;Needs an open port 22 and shared keys, which the Head of Security ruled out&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;Servers with public IPs, no load balancer&lt;/td&gt;&lt;td&gt;cheapest&lt;/td&gt;&lt;td&gt;Internal servers reachable from the internet, and no automatic failover&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#545B64;fontSize=12;align=left;verticalAlign=top;spacing=0;overflow=fill;" vertex="1" parent="1">
+          <mxGeometry x="20" y="360" width="1250" height="180" as="geometry" />
+        </mxCell>
+        <mxCell id="tip" value="&lt;b&gt;Keep the bill low in the lab:&lt;/b&gt; NAT gateways and the load balancer bill every hour even with no traffic. Delete the stack when you are not using it; GitSync can rebuild it from the repository." style="text;html=1;align=left;verticalAlign=top;whiteSpace=wrap;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="20" y="560" width="1250" height="40" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
