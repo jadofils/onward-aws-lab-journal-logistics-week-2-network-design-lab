@@ -4,7 +4,7 @@
 # Project : Onward Logistics - Secure Network for the Order System
 #
 # Creates (or updates) onward-cfn-network-deploy-role, used for both GitSync
-# fields of the onward-dev-network stack:
+# fields of the onward-aws-lab-journal-week-2 stack:
 #   - Git sync IAM role   (trusted by cloudformation.sync.codeconnections)
 #   - Stack service role  (trusted by cloudformation, creates the resources)
 # It is separate from Week 1's onward-cfn-deploy-role, so neither stack can
@@ -350,7 +350,7 @@ if aws iam get-role --role-name "$ROLE_NAME" >/dev/null 2>&1; then
 else
   echo "Creating role"
   aws iam create-role --role-name "$ROLE_NAME" \
-    --description "CloudFormation service role for the onward-dev-network stack" \
+    --description "CloudFormation service role for the onward-aws-lab-journal-week-2 stack" \
     --assume-role-policy-document "file://${WORK_DIR}/trust.json" \
     --tags "${TAGS[@]}" >/dev/null
 fi

@@ -6,7 +6,7 @@
 # parameters and tags. This file must stay at the repository root.
 #
 # Usage (console): CloudFormation > Create stack > Sync from Git
-#   - Stack name      : onward-dev-network
+#   - Stack name      : onward-aws-lab-journal-week-2
 #   - Repository      : <your repo>  (via AWS CodeConnections)
 #   - Branch          : main
 #   - Deployment file : network-template-deployment.yaml

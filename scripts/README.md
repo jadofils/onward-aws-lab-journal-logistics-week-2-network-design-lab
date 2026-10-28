@@ -4,12 +4,12 @@ Helper and evidence scripts for Week 2. They run in AWS CloudShell, like Week 1'
 
 | Script | Purpose | Changes AWS? |
 |--------|---------|--------------|
-| [create-network-deploy-role.sh](create-network-deploy-role.sh) | Creates `onward-cfn-network-deploy-role`, the role GitSync and CloudFormation use for the `onward-dev-network` stack. Separate from Week 1's role. `--delete` removes it again | Yes: one IAM role and two customer managed policies |
+| [create-network-deploy-role.sh](create-network-deploy-role.sh) | Creates `onward-cfn-network-deploy-role`, the role GitSync and CloudFormation use for the `onward-aws-lab-journal-week-2` stack. Separate from Week 1's role. `--delete` removes it again | Yes: one IAM role and two customer managed policies |
 
 ## Run order
 
 1. In CloudShell: `bash create-network-deploy-role.sh`
-2. Create the GitSync stack `onward-dev-network` with deployment file `network-template-deployment.yaml`, and select `onward-cfn-network-deploy-role` as both the Git sync IAM role and the stack's IAM role.
+2. Create the GitSync stack `onward-aws-lab-journal-week-2` with deployment file `network-template-deployment.yaml`, and select `onward-cfn-network-deploy-role` as both the Git sync IAM role and the stack's IAM role.
 
 To record a different approver: `APPROVED_BY="name-or-role" bash create-network-deploy-role.sh`
 

@@ -90,7 +90,7 @@ No security group allows port 22. Engineers use Session Manager, and every serve
 onward-aws-lab-journal-logistics-week-2-network-design-lab/
 ├── README.md            # This file
 ├── .gitignore           # Keeps evidence output, .env and keys out of Git
-├── network-template-deployment.yaml  # GitSync deployment file (stack onward-dev-network)
+├── network-template-deployment.yaml  # GitSync deployment file (stack onward-aws-lab-journal-week-2)
 ├── docs/
 │   ├── lab-brief.md     # Lab brief and client requirements
 │   ├── client-profile.md    # Onward Logistics profile, stakeholders and standards
