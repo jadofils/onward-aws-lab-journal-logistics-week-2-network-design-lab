@@ -1,0 +1,931 @@
+# =============================================================================
+# network-template.yaml - Onward Logistics secure network for the order system
+# Builds a VPC across two Availability Zones: an internet-facing load balancer,
+# private web and order servers in Auto Scaling groups, one NAT gateway per
+# zone for updates, Session Manager access with no SSH, and a budget alert.
+# GitSync deploys this file whenever main changes (see ../deployment.yaml).
+# =============================================================================
+
+# Version of the CloudFormation template language. "2010-09-09" is the only valid value.
+# Means: which version of the template format this file is written in.
+# AWS uses: AWSTemplateFormatVersion: "2010-09-09"
+AWSTemplateFormatVersion: "2010-09-09"
+# Text shown on the stack in the console.
+# Means: a human-readable summary of what this stack builds.
+# AWS uses: the lines below joined into one string.
+Description: >
+  Onward Logistics - secure, highly available network for the order system.
+  VPC in two Availability Zones, Application Load Balancer in public subnets,
+  web and order servers in private subnets (Auto Scaling, min 2 each), one NAT
+  gateway per zone, S3 gateway endpoint, administration through Session Manager
+  only (no port 22, no keys), no inline policies, and an AWS Budgets alert.
+  Deploy with CAPABILITY_NAMED_IAM.
+
+# -----------------------------------------------------------------------------
+# PARAMETERS - values chosen at deploy time (set in deployment.yaml).
+# -----------------------------------------------------------------------------
+# Means: start of the inputs section; each entry below is one input value.
+# AWS uses: the values from deployment.yaml, or the Default when none is given.
+Parameters:
+  # Environment name used in every resource name: onward-<Environment>-<purpose>.
+  # Means: which copy of the network this is (dev, test or prod).
+  # AWS uses: the value from deployment.yaml; only dev, test or prod is accepted.
+  Environment:
+    Type: String
+    Default: dev
+    AllowedValues: [dev, test, prod]
+  # Full name shown on every front-end page, as the brief requires.
+  # Means: text input with the student's full name.
+  # AWS uses: it inside the web servers' UserData, so it appears on the page.
+  OwnerName:
+    Type: String
+    Default: Jado Fils SEZIKEYE
+  # Lab name shown on every front-end page, as the brief requires.
+  # Means: text input with the lab title.
+  # AWS uses: it inside the web servers' UserData, so it appears on the page.
+  LabName:
+    Type: String
+    Default: Designing a Secure Network for the Onward Logistics Order System
+  # Server size. Only Free Tier eligible sizes are allowed.
+  # Means: the EC2 instance type for every server.
+  # AWS uses: t3.micro or t2.micro; anything else makes the deploy fail before it starts.
+  InstanceType:
+    Type: String
+    Default: t3.micro
+    AllowedValues: [t3.micro, t2.micro]
+  # Latest Amazon Linux 2023 image, read from a public SSM parameter that AWS keeps up to date.
+  # Means: the AMI ID is looked up at deploy time instead of being hard-coded.
+  # AWS uses: the image ID stored in that SSM parameter for the stack's Region.
+  LatestAmiId:
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Default: /aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64
+  # One NAT gateway per zone (resilient) or one shared NAT gateway (about $33 a month cheaper).
+  # Means: an on/off choice between the two NAT designs.
+  # AWS uses: "one-per-az" or "single"; any other value is rejected.
+  NatGatewayMode:
+    Type: String
+    Default: one-per-az
+    AllowedValues: [one-per-az, single]
+  # Monthly spend limit for the budget alert, in US dollars.
+  # Means: a number input for the budget amount.
+  # AWS uses: it as the budget limit; alerts fire at 80% actual and 100% forecast.
+  MonthlyBudgetUsd:
+    Type: Number
+    Default: 120
+    MinValue: 1
+  # Email that receives budget alerts. Leave empty to create the budget with no email alert.
+  # Means: a text input for the alert email address.
+  # AWS uses: it as the alert subscriber when it is not empty.
+  BudgetAlertEmail:
+    Type: String
+    Default: ""
+
+# -----------------------------------------------------------------------------
+# CONDITIONS - true/false rules that decide whether some resources are created.
+# -----------------------------------------------------------------------------
+# Means: start of the rules section; a resource with "Condition: X" is created only when X is true.
+# AWS uses: each rule's result (true or false) when it decides what to build.
+Conditions:
+  # True when each zone gets its own NAT gateway.
+  # Means: TwoNatGateways = (NatGatewayMode equals "one-per-az").
+  # AWS uses: true or false; NAT gateway B and its Elastic IP are created only when true.
+  TwoNatGateways: !Equals [!Ref NatGatewayMode, one-per-az]
+  # True when an alert email was given.
+  # Means: HasBudgetEmail = (BudgetAlertEmail is not empty).
+  # AWS uses: true or false to decide whether the budget sends email alerts.
+  HasBudgetEmail: !Not [!Equals [!Ref BudgetAlertEmail, ""]]
+
+# Means: start of the resources section; every entry below is one AWS object to create.
+# AWS uses: each entry's Type and Properties to create, update or delete that object.
+Resources:
+  # ---------------------------------------------------------------------------
+  # VPC AND INTERNET GATEWAY
+  # The private network, and the one door between it and the internet.
+  # ---------------------------------------------------------------------------
+
+  # The private network that holds every subnet and server.
+  # Means: Vpc is the logical ID, the name used inside this template only.
+  # AWS uses: AWS::EC2::VPC -> creates a virtual network with the address range below.
+  Vpc:
+    Type: AWS::EC2::VPC
+    Properties:
+      # Means: the VPC's address range; 10.20.0.0/16 gives 65,536 private addresses.
+      # AWS uses: 10.20.0.0/16 as the VPC CIDR block.
+      CidrBlock: 10.20.0.0/16
+      # Means: the VPC can resolve AWS service names to addresses.
+      # AWS uses: true; Session Manager and the S3 endpoint need DNS to work.
+      EnableDnsSupport: true
+      # Means: instances get DNS host names.
+      # AWS uses: true, needed for the SSM Agent to reach Systems Manager by name.
+      EnableDnsHostnames: true
+      # Means: key/value labels on the VPC.
+      # AWS uses: Name = onward-dev-orders-vpc (shown in the console list).
+      Tags:
+        - Key: Name
+          Value: !Sub onward-${Environment}-orders-vpc
+
+  # The door between the VPC and the internet. Only public subnets route to it.
+  # Means: InternetGateway is the logical ID.
+  # AWS uses: AWS::EC2::InternetGateway -> creates an internet gateway (not yet attached).
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Sub onward-${Environment}-igw
+
+  # Connects the internet gateway to the VPC.
+  # Means: attach InternetGateway to Vpc.
+  # AWS uses: AWS::EC2::VPCGatewayAttachment -> links the two by their IDs.
+  InternetGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      # Means: which VPC; !Ref returns the VPC ID.
+      # AWS uses: the VPC ID, for example vpc-0abc...
+      VpcId: !Ref Vpc
+      # Means: which internet gateway; !Ref returns its ID.
+      # AWS uses: the internet gateway ID, for example igw-0abc...
+      InternetGatewayId: !Ref InternetGateway
+
+  # ---------------------------------------------------------------------------
+  # SUBNETS - three layers in each of two Availability Zones.
+  # Public: load balancer and NAT gateway. Web: web servers. Order: order servers.
+  # !GetAZs "" lists the Region's zones; !Select [0, ...] picks the first, [1, ...] the second.
+  # ---------------------------------------------------------------------------
+
+  # Public subnet in zone A: holds a load balancer node and NAT gateway A.
+  # Means: a slice of the VPC's addresses placed in one Availability Zone.
+  # AWS uses: AWS::EC2::Subnet -> creates the subnet 10.20.0.0/24 in the first zone.
+  PublicSubnetA:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref Vpc
+      # Means: the subnet's address range (256 addresses).
+      # AWS uses: 10.20.0.0/24
+      CidrBlock: 10.20.0.0/24
+      # Means: which Availability Zone the subnet lives in.
+      # AWS uses: the first zone of the Region, for example eu-west-1a.
+      AvailabilityZone: !Select [0, !GetAZs ""]
+      # Means: servers launched here would not get a public IP automatically.
+      # AWS uses: false; the ALB and NAT gateway get their own public addresses.
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: !Sub onward-${Environment}-public-a
+
+  # Public subnet in zone B: holds a load balancer node and NAT gateway B.
+  # Means: the zone B copy of PublicSubnetA.
+  # AWS uses: AWS::EC2::Subnet -> 10.20.1.0/24 in the second zone.
+  PublicSubnetB:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref Vpc
+      CidrBlock: 10.20.1.0/24
+      AvailabilityZone: !Select [1, !GetAZs ""]
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: !Sub onward-${Environment}-public-b
+
+  # Private subnet for web servers in zone A. No route from the internet.
+  # Means: a private slice of the VPC in zone A.
+  # AWS uses: AWS::EC2::Subnet -> 10.20.10.0/24 in the first zone.
+  WebSubnetA:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref Vpc
+      CidrBlock: 10.20.10.0/24
+      AvailabilityZone: !Select [0, !GetAZs ""]
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: !Sub onward-${Environment}-web-a
+
+  # Private subnet for web servers in zone B.
+  # Means: the zone B copy of WebSubnetA.
+  # AWS uses: AWS::EC2::Subnet -> 10.20.11.0/24 in the second zone.
+  WebSubnetB:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref Vpc
+      CidrBlock: 10.20.11.0/24
+      AvailabilityZone: !Select [1, !GetAZs ""]
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: !Sub onward-${Environment}-web-b
+
+  # Private subnet for order servers in zone A.
+  # Means: a second private slice in zone A, kept apart from the web layer.
+  # AWS uses: AWS::EC2::Subnet -> 10.20.20.0/24 in the first zone.
+  OrderSubnetA:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref Vpc
+      CidrBlock: 10.20.20.0/24
+      AvailabilityZone: !Select [0, !GetAZs ""]
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: !Sub onward-${Environment}-order-a
+
+  # Private subnet for order servers in zone B.
+  # Means: the zone B copy of OrderSubnetA.
+  # AWS uses: AWS::EC2::Subnet -> 10.20.21.0/24 in the second zone.
+  OrderSubnetB:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref Vpc
+      CidrBlock: 10.20.21.0/24
+      AvailabilityZone: !Select [1, !GetAZs ""]
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: !Sub onward-${Environment}-order-b
+
+  # ---------------------------------------------------------------------------
+  # NAT GATEWAYS - outbound-only internet for private servers (updates).
+  # They allow replies back in, but nobody on the internet can start a connection.
+  # ---------------------------------------------------------------------------
+
+  # Fixed public address for NAT gateway A.
+  # Means: an Elastic IP, a public IPv4 address that stays the same.
+  # AWS uses: AWS::EC2::EIP -> allocates one public address for use in the VPC.
+  NatEipA:
+    Type: AWS::EC2::EIP
+    # Means: wait until the internet gateway is attached before creating this.
+    # AWS uses: the order of creation; an EIP for a VPC needs an attached gateway.
+    DependsOn: InternetGatewayAttachment
+    Properties:
+      # Means: the address is for use inside a VPC.
+      # AWS uses: vpc
+      Domain: vpc
+      Tags:
+        - Key: Name
+          Value: !Sub onward-${Environment}-nat-eip-a
+
+  # NAT gateway in zone A. Private servers in zone A send outbound traffic here.
+  # Means: NatGatewayA is the logical ID.
+  # AWS uses: AWS::EC2::NatGateway -> a managed NAT in PublicSubnetA using NatEipA.
+  NatGatewayA:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      # Means: which Elastic IP the NAT gateway uses as its public address.
+      # AWS uses: the allocation ID returned by !GetAtt NatEipA.AllocationId.
+      AllocationId: !GetAtt NatEipA.AllocationId
+      # Means: the NAT gateway must sit in a public subnet to reach the internet gateway.
+      # AWS uses: the ID of PublicSubnetA.
+      SubnetId: !Ref PublicSubnetA
+      Tags:
+        - Key: Name
+          Value: !Sub onward-${Environment}-nat-a
+
+  # Fixed public address for NAT gateway B. Created only in one-per-az mode.
+  # Means: the zone B copy of NatEipA.
+  # AWS uses: Condition TwoNatGateways; skipped when NatGatewayMode is "single".
+  NatEipB:
+    Type: AWS::EC2::EIP
+    Condition: TwoNatGateways
+    DependsOn: InternetGatewayAttachment
+    Properties:
+      Domain: vpc
+      Tags:
+        - Key: Name
+          Value: !Sub onward-${Environment}-nat-eip-b
+
+  # NAT gateway in zone B, so losing zone A does not cut zone B's updates.
+  # Means: the zone B copy of NatGatewayA.
+  # AWS uses: Condition TwoNatGateways; skipped when NatGatewayMode is "single".
+  NatGatewayB:
+    Type: AWS::EC2::NatGateway
+    Condition: TwoNatGateways
+    Properties:
+      AllocationId: !GetAtt NatEipB.AllocationId
+      SubnetId: !Ref PublicSubnetB
+      Tags:
+        - Key: Name
+          Value: !Sub onward-${Environment}-nat-b
+
+  # ---------------------------------------------------------------------------
+  # ROUTE TABLES - where traffic leaving each subnet goes.
+  # Public: anything not in the VPC goes to the internet gateway.
+  # Private A and B: anything not in the VPC goes to the NAT gateway in the same zone.
+  # Traffic inside 10.20.0.0/16 always stays local (AWS adds that route itself).
+  # ---------------------------------------------------------------------------
+
+  # Route table shared by both public subnets.
+  # Means: an empty list of routes for the public layer.
+  # AWS uses: AWS::EC2::RouteTable -> creates the table in the VPC.
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref Vpc
+      Tags:
+        - Key: Name
+          Value: !Sub onward-${Environment}-public-rt
+
+  # Sends all internet-bound traffic from public subnets to the internet gateway.
+  # Means: a route "0.0.0.0/0 -> internet gateway".
+  # AWS uses: AWS::EC2::Route -> adds that route to PublicRouteTable.
+  PublicDefaultRoute:
+    Type: AWS::EC2::Route
+    DependsOn: InternetGatewayAttachment
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      # Means: every address that is not inside the VPC.
+      # AWS uses: 0.0.0.0/0
+      DestinationCidrBlock: 0.0.0.0/0
+      # Means: where that traffic goes.
+      # AWS uses: the internet gateway ID.
+      GatewayId: !Ref InternetGateway
+
+  # Links public subnet A to the public route table.
+  # Means: PublicSubnetA uses PublicRouteTable.
+  # AWS uses: AWS::EC2::SubnetRouteTableAssociation -> the subnet ID and route table ID.
+  PublicSubnetARouteAssoc:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnetA
+      RouteTableId: !Ref PublicRouteTable
+
+  # Links public subnet B to the public route table.
+  # Means: PublicSubnetB uses PublicRouteTable.
+  # AWS uses: AWS::EC2::SubnetRouteTableAssociation.
+  PublicSubnetBRouteAssoc:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnetB
+      RouteTableId: !Ref PublicRouteTable
+
+  # Route table for the private subnets in zone A.
+  # Means: the route list for WebSubnetA and OrderSubnetA.
+  # AWS uses: AWS::EC2::RouteTable in the VPC.
+  PrivateRouteTableA:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref Vpc
+      Tags:
+        - Key: Name
+          Value: !Sub onward-${Environment}-private-rt-a
+
+  # Sends internet-bound traffic from zone A's private subnets to NAT gateway A.
+  # Means: a route "0.0.0.0/0 -> NAT gateway A". There is no route to the internet gateway.
+  # AWS uses: AWS::EC2::Route with NatGatewayId.
+  PrivateDefaultRouteA:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref PrivateRouteTableA
+      DestinationCidrBlock: 0.0.0.0/0
+      # Means: send the traffic through NAT gateway A.
+      # AWS uses: the NAT gateway A ID.
+      NatGatewayId: !Ref NatGatewayA
+
+  # Links web subnet A to private route table A.
+  # Means: WebSubnetA uses PrivateRouteTableA.
+  # AWS uses: AWS::EC2::SubnetRouteTableAssociation.
+  WebSubnetARouteAssoc:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref WebSubnetA
+      RouteTableId: !Ref PrivateRouteTableA
+
+  # Links order subnet A to private route table A.
+  # Means: OrderSubnetA uses PrivateRouteTableA.
+  # AWS uses: AWS::EC2::SubnetRouteTableAssociation.
+  OrderSubnetARouteAssoc:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref OrderSubnetA
+      RouteTableId: !Ref PrivateRouteTableA
+
+  # Route table for the private subnets in zone B.
+  # Means: the route list for WebSubnetB and OrderSubnetB.
+  # AWS uses: AWS::EC2::RouteTable in the VPC.
+  PrivateRouteTableB:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref Vpc
+      Tags:
+        - Key: Name
+          Value: !Sub onward-${Environment}-private-rt-b
+
+  # Sends zone B's internet-bound traffic to NAT gateway B (or A in "single" mode).
+  # Means: a route "0.0.0.0/0 -> NAT gateway in zone B".
+  # AWS uses: !If picks NatGatewayB when TwoNatGateways is true, otherwise NatGatewayA.
+  PrivateDefaultRouteB:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref PrivateRouteTableB
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !If [TwoNatGateways, !Ref NatGatewayB, !Ref NatGatewayA]
+
+  # Links web subnet B to private route table B.
+  # Means: WebSubnetB uses PrivateRouteTableB.
+  # AWS uses: AWS::EC2::SubnetRouteTableAssociation.
+  WebSubnetBRouteAssoc:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref WebSubnetB
+      RouteTableId: !Ref PrivateRouteTableB
+
+  # Links order subnet B to private route table B.
+  # Means: OrderSubnetB uses PrivateRouteTableB.
+  # AWS uses: AWS::EC2::SubnetRouteTableAssociation.
+  OrderSubnetBRouteAssoc:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref OrderSubnetB
+      RouteTableId: !Ref PrivateRouteTableB
+
+  # Free private route to Amazon S3. Amazon Linux package repositories are in S3,
+  # so most updates use this instead of the NAT gateway (lower data charges).
+  # Means: a gateway endpoint that adds an S3 route to the private route tables.
+  # AWS uses: AWS::EC2::VPCEndpoint, type Gateway, for com.amazonaws.<region>.s3.
+  S3GatewayEndpoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      VpcId: !Ref Vpc
+      # Means: the AWS service this endpoint reaches.
+      # AWS uses: com.amazonaws.eu-west-1.s3 when deployed in eu-west-1.
+      ServiceName: !Sub com.amazonaws.${AWS::Region}.s3
+      # Means: a gateway endpoint (free), not an interface endpoint (billed hourly).
+      # AWS uses: Gateway
+      VpcEndpointType: Gateway
+      # Means: which route tables get the S3 route.
+      # AWS uses: both private route tables.
+      RouteTableIds:
+        - !Ref PrivateRouteTableA
+        - !Ref PrivateRouteTableB
+
+  # ---------------------------------------------------------------------------
+  # SECURITY GROUPS - firewalls on each layer. Each layer only accepts traffic
+  # from the layer in front of it. No group allows port 22 (SSH).
+  # ---------------------------------------------------------------------------
+
+  # Firewall for the load balancer: the only thing open to the internet.
+  # Means: AlbSecurityGroup is the logical ID.
+  # AWS uses: AWS::EC2::SecurityGroup -> a security group in the VPC.
+  AlbSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      # Means: the group's real name in AWS.
+      # AWS uses: onward-dev-alb-sg
+      GroupName: !Sub onward-${Environment}-alb-sg
+      GroupDescription: Load balancer - HTTP from the internet only
+      VpcId: !Ref Vpc
+      # Means: the list of allowed incoming connections.
+      # AWS uses: one rule, TCP port 80 from any IPv4 address.
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+          Description: HTTP from merchants and customers
+      Tags:
+        - Key: Name
+          Value: !Sub onward-${Environment}-alb-sg
+
+  # Firewall for web servers: accepts HTTP only from the load balancer.
+  # Means: WebSecurityGroup is the logical ID.
+  # AWS uses: AWS::EC2::SecurityGroup with one ingress rule.
+  WebSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: !Sub onward-${Environment}-web-sg
+      GroupDescription: Web servers - HTTP from the load balancer only
+      VpcId: !Ref Vpc
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          # Means: the source is "anything in the ALB security group", not an IP range.
+          # AWS uses: the ID of AlbSecurityGroup, for example sg-0abc...
+          SourceSecurityGroupId: !Ref AlbSecurityGroup
+          Description: HTTP from the load balancer
+      Tags:
+        - Key: Name
+          Value: !Sub onward-${Environment}-web-sg
+
+  # Firewall for order servers: accepts port 8080 only from web servers.
+  # Means: OrderSecurityGroup is the logical ID.
+  # AWS uses: AWS::EC2::SecurityGroup with one ingress rule.
+  OrderSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: !Sub onward-${Environment}-order-sg
+      GroupDescription: Order servers - port 8080 from web servers only
+      VpcId: !Ref Vpc
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 8080
+          ToPort: 8080
+          # Means: only servers in the web security group can connect.
+          # AWS uses: the ID of WebSecurityGroup.
+          SourceSecurityGroupId: !Ref WebSecurityGroup
+          Description: Order API from web servers
+      Tags:
+        - Key: Name
+          Value: !Sub onward-${Environment}-order-sg
+
+  # ---------------------------------------------------------------------------
+  # SERVER IDENTITY - lets the SSM Agent on each server talk to Systems Manager.
+  # Uses an AWS managed policy (no inline policies).
+  # ---------------------------------------------------------------------------
+
+  # Role that EC2 servers take on. It allows Session Manager and nothing else.
+  # Means: InstanceRole is the logical ID.
+  # AWS uses: AWS::IAM::Role named onward-dev-ec2-ssm-role.
+  InstanceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      # Means: the role's real name. A fixed name needs CAPABILITY_NAMED_IAM.
+      # AWS uses: onward-dev-ec2-ssm-role
+      RoleName: !Sub onward-${Environment}-ec2-ssm-role
+      # Means: the trust policy, which says who may take on this role.
+      # AWS uses: only the EC2 service (ec2.amazonaws.com) may assume it.
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ec2.amazonaws.com
+            Action: sts:AssumeRole
+      # Means: the permission policies attached to the role (managed, not inline).
+      # AWS uses: AmazonSSMManagedInstanceCore, which lets the SSM Agent register and open sessions.
+      ManagedPolicyArns:
+        - !Sub arn:${AWS::Partition}:iam::aws:policy/AmazonSSMManagedInstanceCore
+
+  # Wrapper that hands the role to an EC2 server.
+  # Means: InstanceProfile is the logical ID.
+  # AWS uses: AWS::IAM::InstanceProfile named onward-dev-ec2-ssm-profile holding InstanceRole.
+  InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      InstanceProfileName: !Sub onward-${Environment}-ec2-ssm-profile
+      Roles:
+        - !Ref InstanceRole
+
+  # ---------------------------------------------------------------------------
+  # LOAD BALANCER - the only internet-facing entry point.
+  # ---------------------------------------------------------------------------
+
+  # Application Load Balancer with one node in each public subnet.
+  # Means: WebLoadBalancer is the logical ID.
+  # AWS uses: AWS::ElasticLoadBalancingV2::LoadBalancer named onward-dev-web-alb.
+  WebLoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    DependsOn: PublicDefaultRoute
+    Properties:
+      Name: !Sub onward-${Environment}-web-alb
+      # Means: an HTTP/HTTPS load balancer.
+      # AWS uses: application
+      Type: application
+      # Means: reachable from the internet (gets public addresses).
+      # AWS uses: internet-facing
+      Scheme: internet-facing
+      # Means: one node in each public subnet, so it survives losing a zone.
+      # AWS uses: the IDs of PublicSubnetA and PublicSubnetB.
+      Subnets:
+        - !Ref PublicSubnetA
+        - !Ref PublicSubnetB
+      SecurityGroups:
+        - !Ref AlbSecurityGroup
+      Tags:
+        - Key: Name
+          Value: !Sub onward-${Environment}-web-alb
+
+  # The list of web servers the load balancer sends traffic to, with health checks.
+  # Means: WebTargetGroup is the logical ID.
+  # AWS uses: AWS::ElasticLoadBalancingV2::TargetGroup named onward-dev-web-tg.
+  WebTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: !Sub onward-${Environment}-web-tg
+      VpcId: !Ref Vpc
+      # Means: send HTTP to port 80 on each web server.
+      # AWS uses: HTTP and 80.
+      Protocol: HTTP
+      Port: 80
+      # Means: targets are EC2 instances (added by the Auto Scaling group).
+      # AWS uses: instance
+      TargetType: instance
+      # Means: the page the load balancer requests to check a server is healthy.
+      # AWS uses: GET / every 10 seconds; 2 failures = unhealthy, 2 successes = healthy.
+      HealthCheckPath: /
+      HealthCheckIntervalSeconds: 10
+      HealthyThresholdCount: 2
+      UnhealthyThresholdCount: 2
+      # Means: how long to finish open requests before removing a server.
+      # AWS uses: 30 seconds (default is 300), so failover and updates are quicker.
+      TargetGroupAttributes:
+        - Key: deregistration_delay.timeout_seconds
+          Value: "30"
+      Tags:
+        - Key: Name
+          Value: !Sub onward-${Environment}-web-tg
+
+  # Listens on port 80 and forwards every request to the web target group.
+  # Means: WebListener is the logical ID.
+  # AWS uses: AWS::ElasticLoadBalancingV2::Listener on WebLoadBalancer.
+  WebListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn: !Ref WebLoadBalancer
+      # Means: accept HTTP on port 80. HTTPS needs a domain and certificate, not provided in the lab.
+      # AWS uses: HTTP and 80.
+      Protocol: HTTP
+      Port: 80
+      # Means: what to do with each request.
+      # AWS uses: forward it to WebTargetGroup.
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref WebTargetGroup
+
+  # ---------------------------------------------------------------------------
+  # WEB SERVERS - launch template and Auto Scaling group (one per zone, min 2).
+  # ---------------------------------------------------------------------------
+
+  # Blueprint for every web server: image, size, firewall, role and start-up script.
+  # Means: WebLaunchTemplate is the logical ID.
+  # AWS uses: AWS::EC2::LaunchTemplate named onward-dev-web-lt.
+  WebLaunchTemplate:
+    Type: AWS::EC2::LaunchTemplate
+    Properties:
+      LaunchTemplateName: !Sub onward-${Environment}-web-lt
+      LaunchTemplateData:
+        # Means: the operating system image.
+        # AWS uses: the latest Amazon Linux 2023 AMI from the LatestAmiId parameter.
+        ImageId: !Ref LatestAmiId
+        # Means: the server size.
+        # AWS uses: t3.micro (Free Tier eligible) unless deployment.yaml says otherwise.
+        InstanceType: !Ref InstanceType
+        # Means: the role the server runs as.
+        # AWS uses: the ARN of InstanceProfile, so the SSM Agent can connect.
+        IamInstanceProfile:
+          Arn: !GetAtt InstanceProfile.Arn
+        # Means: the firewall for each web server.
+        # AWS uses: WebSecurityGroup only.
+        SecurityGroupIds:
+          - !Ref WebSecurityGroup
+        # Means: require IMDSv2 (token-based metadata), which blocks a common attack.
+        # AWS uses: HttpTokens required.
+        MetadataOptions:
+          HttpTokens: required
+          HttpEndpoint: enabled
+        # Means: labels put on each server and its disk when launched.
+        # AWS uses: Name = onward-dev-web on the instance and the volume.
+        TagSpecifications:
+          - ResourceType: instance
+            Tags:
+              - Key: Name
+                Value: !Sub onward-${Environment}-web
+          - ResourceType: volume
+            Tags:
+              - Key: Name
+                Value: !Sub onward-${Environment}-web
+        # Script that runs once at first boot: installs Apache and writes the page.
+        # Means: !Sub fills in ${OwnerName} and ${LabName}; Base64 is the format EC2 expects.
+        # AWS uses: the script below, run as root by cloud-init on first boot.
+        UserData:
+          Fn::Base64: !Sub |
+            #!/bin/bash
+            set -euxo pipefail
+            dnf install -y httpd
+            TOKEN=$(curl -sX PUT http://169.254.169.254/latest/api/token -H "X-aws-ec2-metadata-token-ttl-seconds: 300")
+            IID=$(curl -s -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/instance-id)
+            AZ=$(curl -s -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/placement/availability-zone)
+            cat > /var/www/html/index.html <<EOF
+            <!DOCTYPE html>
+            <html lang="en">
+            <head><meta charset="utf-8"><title>Onward Logistics</title>
+            <style>body{font-family:Arial,sans-serif;background:#f4f6f8;color:#232f3e;margin:0;padding:48px}
+            .card{max-width:640px;margin:auto;background:#fff;border-radius:8px;padding:32px;box-shadow:0 2px 8px rgba(0,0,0,.1)}
+            h1{margin-top:0}.meta{color:#545b64;font-size:14px}</style></head>
+            <body><div class="card">
+            <h1>Onward Logistics Order System</h1>
+            <p><strong>Name:</strong> ${OwnerName}</p>
+            <p><strong>Lab:</strong> ${LabName}</p>
+            <p class="meta">Served by $IID in $AZ</p>
+            </div></body></html>
+            EOF
+            systemctl enable --now httpd
+
+  # Keeps at least two web servers running, one in each zone, registered with the load balancer.
+  # Means: WebAutoScalingGroup is the logical ID.
+  # AWS uses: AWS::AutoScaling::AutoScalingGroup named onward-dev-web-asg.
+  WebAutoScalingGroup:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    # Means: create the servers only after their routes exist, so dnf install works at boot.
+    # AWS uses: the order of creation.
+    DependsOn:
+      - PrivateDefaultRouteA
+      - PrivateDefaultRouteB
+      - S3GatewayEndpoint
+    Properties:
+      AutoScalingGroupName: !Sub onward-${Environment}-web-asg
+      # Means: which blueprint and which version of it to launch.
+      # AWS uses: WebLaunchTemplate at its latest version number.
+      LaunchTemplate:
+        LaunchTemplateId: !Ref WebLaunchTemplate
+        Version: !GetAtt WebLaunchTemplate.LatestVersionNumber
+      # Means: never fewer than 2, never more than 4, normally 2 servers.
+      # AWS uses: MinSize 2, MaxSize 4, DesiredCapacity 2.
+      MinSize: "2"
+      MaxSize: "4"
+      DesiredCapacity: "2"
+      # Means: the subnets the servers go in; the group spreads them across both zones.
+      # AWS uses: the IDs of WebSubnetA and WebSubnetB.
+      VPCZoneIdentifier:
+        - !Ref WebSubnetA
+        - !Ref WebSubnetB
+      # Means: register every server with the load balancer's target group.
+      # AWS uses: the ARN of WebTargetGroup.
+      TargetGroupARNs:
+        - !Ref WebTargetGroup
+      # Means: replace a server when the load balancer marks it unhealthy, not only when EC2 does.
+      # AWS uses: ELB, with 120 seconds after launch before checks count.
+      HealthCheckType: ELB
+      HealthCheckGracePeriod: 120
+      Tags:
+        - Key: Name
+          Value: !Sub onward-${Environment}-web
+          PropagateAtLaunch: true
+    # Means: when the launch template changes, replace servers one at a time.
+    # AWS uses: a rolling update that keeps at least 1 server in service.
+    UpdatePolicy:
+      AutoScalingRollingUpdate:
+        MinInstancesInService: 1
+        MaxBatchSize: 1
+        PauseTime: PT2M
+
+  # ---------------------------------------------------------------------------
+  # ORDER SERVERS - launch template and Auto Scaling group (one per zone, min 2).
+  # A small stand-in order service listens on port 8080.
+  # ---------------------------------------------------------------------------
+
+  # Blueprint for every order server.
+  # Means: OrderLaunchTemplate is the logical ID.
+  # AWS uses: AWS::EC2::LaunchTemplate named onward-dev-order-lt.
+  OrderLaunchTemplate:
+    Type: AWS::EC2::LaunchTemplate
+    Properties:
+      LaunchTemplateName: !Sub onward-${Environment}-order-lt
+      LaunchTemplateData:
+        ImageId: !Ref LatestAmiId
+        InstanceType: !Ref InstanceType
+        IamInstanceProfile:
+          Arn: !GetAtt InstanceProfile.Arn
+        # Means: the firewall for each order server.
+        # AWS uses: OrderSecurityGroup only.
+        SecurityGroupIds:
+          - !Ref OrderSecurityGroup
+        MetadataOptions:
+          HttpTokens: required
+          HttpEndpoint: enabled
+        TagSpecifications:
+          - ResourceType: instance
+            Tags:
+              - Key: Name
+                Value: !Sub onward-${Environment}-order
+          - ResourceType: volume
+            Tags:
+              - Key: Name
+                Value: !Sub onward-${Environment}-order
+        # Script that runs at first boot: starts a stand-in order service on port 8080
+        # as an unprivileged systemd service (DynamicUser), so it does not run as root.
+        # Means: ${!...} is not used here; plain $IID and $AZ are left for bash to fill in.
+        # AWS uses: the script below, run as root by cloud-init on first boot.
+        UserData:
+          Fn::Base64: !Sub |
+            #!/bin/bash
+            set -euxo pipefail
+            TOKEN=$(curl -sX PUT http://169.254.169.254/latest/api/token -H "X-aws-ec2-metadata-token-ttl-seconds: 300")
+            IID=$(curl -s -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/instance-id)
+            AZ=$(curl -s -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/placement/availability-zone)
+            mkdir -p /opt/onward-orders
+            echo "Onward order service (${Environment}): OK from $IID in $AZ" > /opt/onward-orders/index.html
+            chmod -R a+rX /opt/onward-orders
+            cat > /etc/systemd/system/onward-orders.service <<'EOF'
+            [Unit]
+            Description=Onward order service (lab stand-in)
+            After=network-online.target
+            [Service]
+            ExecStart=/usr/bin/python3 -m http.server 8080 --directory /opt/onward-orders
+            DynamicUser=yes
+            Restart=always
+            [Install]
+            WantedBy=multi-user.target
+            EOF
+            systemctl daemon-reload
+            systemctl enable --now onward-orders
+
+  # Keeps at least two order servers running, one in each zone.
+  # Means: OrderAutoScalingGroup is the logical ID.
+  # AWS uses: AWS::AutoScaling::AutoScalingGroup named onward-dev-order-asg.
+  OrderAutoScalingGroup:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    DependsOn:
+      - PrivateDefaultRouteA
+      - PrivateDefaultRouteB
+      - S3GatewayEndpoint
+    Properties:
+      AutoScalingGroupName: !Sub onward-${Environment}-order-asg
+      LaunchTemplate:
+        LaunchTemplateId: !Ref OrderLaunchTemplate
+        Version: !GetAtt OrderLaunchTemplate.LatestVersionNumber
+      MinSize: "2"
+      MaxSize: "4"
+      DesiredCapacity: "2"
+      VPCZoneIdentifier:
+        - !Ref OrderSubnetA
+        - !Ref OrderSubnetB
+      # Means: replace a server when EC2 reports it as failed.
+      # AWS uses: EC2 status checks, with 120 seconds after launch before they count.
+      HealthCheckType: EC2
+      HealthCheckGracePeriod: 120
+      Tags:
+        - Key: Name
+          Value: !Sub onward-${Environment}-order
+          PropagateAtLaunch: true
+    UpdatePolicy:
+      AutoScalingRollingUpdate:
+        MinInstancesInService: 1
+        MaxBatchSize: 1
+        PauseTime: PT2M
+
+  # ---------------------------------------------------------------------------
+  # COST CONTROL - budget alert for the Finance Lead (Client Profile requirement).
+  # ---------------------------------------------------------------------------
+
+  # Monthly cost budget with an alert at 80% of actual spend and 100% of forecast.
+  # Means: NetworkBudget is the logical ID.
+  # AWS uses: AWS::Budgets::Budget named onward-dev-network-monthly.
+  NetworkBudget:
+    Type: AWS::Budgets::Budget
+    Properties:
+      Budget:
+        BudgetName: !Sub onward-${Environment}-network-monthly
+        # Means: track money spent (not usage) per calendar month.
+        # AWS uses: COST and MONTHLY.
+        BudgetType: COST
+        TimeUnit: MONTHLY
+        # Means: the monthly limit in US dollars.
+        # AWS uses: the MonthlyBudgetUsd parameter, 120 by default.
+        BudgetLimit:
+          Amount: !Ref MonthlyBudgetUsd
+          Unit: USD
+      # Means: who gets emailed and when; left out when no email was given.
+      # AWS uses: two alerts (80% actual, 100% forecast) to BudgetAlertEmail, or nothing.
+      NotificationsWithSubscribers: !If
+        - HasBudgetEmail
+        - - Notification:
+              NotificationType: ACTUAL
+              ComparisonOperator: GREATER_THAN
+              Threshold: 80
+              ThresholdType: PERCENTAGE
+            Subscribers:
+              - SubscriptionType: EMAIL
+                Address: !Ref BudgetAlertEmail
+          - Notification:
+              NotificationType: FORECASTED
+              ComparisonOperator: GREATER_THAN
+              Threshold: 100
+              ThresholdType: PERCENTAGE
+            Subscribers:
+              - SubscriptionType: EMAIL
+                Address: !Ref BudgetAlertEmail
+        - !Ref AWS::NoValue
+
+# -----------------------------------------------------------------------------
+# OUTPUTS - values shown on the stack's Outputs tab after deployment.
+# -----------------------------------------------------------------------------
+# Means: start of the outputs section.
+# AWS uses: each Value, shown in the console and returned by describe-stacks.
+Outputs:
+  # Means: the address to open in a browser to see the front-end page.
+  # AWS uses: http:// followed by the load balancer's DNS name.
+  WebsiteUrl:
+    Description: Open this in a browser; refresh to see both zones answer
+    Value: !Sub http://${WebLoadBalancer.DNSName}
+  # Means: the VPC ID, for the evidence script.
+  # AWS uses: !Ref Vpc -> vpc-0abc...
+  VpcId:
+    Value: !Ref Vpc
+  # Means: Auto Scaling group names, for listing the servers.
+  # AWS uses: onward-dev-web-asg and onward-dev-order-asg.
+  WebAutoScalingGroupName:
+    Value: !Ref WebAutoScalingGroup
+  OrderAutoScalingGroupName:
+    Value: !Ref OrderAutoScalingGroup
+  # Means: security group IDs, for checking that no rule allows port 22.
+  # AWS uses: the three sg-... IDs.
+  AlbSecurityGroupId:
+    Value: !Ref AlbSecurityGroup
+  WebSecurityGroupId:
+    Value: !Ref WebSecurityGroup
+  OrderSecurityGroupId:
+    Value: !Ref OrderSecurityGroup
+  # Means: which NAT design was deployed.
+  # AWS uses: one-per-az or single.
+  NatGatewayMode:
+    Value: !Ref NatGatewayMode

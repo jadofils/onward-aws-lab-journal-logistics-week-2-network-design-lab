@@ -2,7 +2,7 @@
 
 Week 2 lab: a highly available, secure network for the Onward Logistics order system, provisioned with AWS CloudFormation and deployed through CloudFormation GitSync.
 
-**Module:** Network & Security on AWS · **Week:** 2 · **Status:** Discovery
+**Module:** Network & Security on AWS · **Week:** 2 · **Status:** Template drafted, not yet deployed
 
 Full brief: [docs/lab-brief.md](docs/lab-brief.md)
 
@@ -29,7 +29,7 @@ Full brief: [docs/lab-brief.md](docs/lab-brief.md)
 ## Stages and deliverables
 
 - [x] **Discovery report:** [docs/discovery.md](docs/discovery.md), committed **before** any template, so the Git history shows the thinking came first (fill in your name, then review)
-- [ ] **Template and deployment file:** `templates/` and `deployment.yaml` in this folder
+- [x] **Template and deployment file:** [templates/network-template.yaml](templates/network-template.yaml) and [deployment.yaml](deployment.yaml)
 - [ ] **GitSync stack** using deployment file path `week-2-secure-network/deployment.yaml`
 - [ ] **Evidence:** scripts and screenshots proving each client check
 - [x] **Architecture diagram** of the resources inside the VPC (optional): see [Solution architecture](#solution-architecture)
@@ -66,14 +66,14 @@ No security group allows port 22. Engineers use Session Manager, and every serve
 ```
 week-2-secure-network/
 ├── README.md            # This file
-├── deployment.yaml      # GitSync deployment file (to be added)
+├── deployment.yaml      # GitSync deployment file (stack onward-dev-network)
 ├── docs/
 │   ├── lab-brief.md     # Lab brief and client requirements
 │   ├── discovery.md     # Discovery report (committed first)
 │   ├── architecture.drawio  # draw.io: architecture, traffic, zone failure, cost (4 pages)
 │   └── images/          # PNG exports of each diagram page
-├── templates/           # CloudFormation templates (to be added)
-└── scripts/             # Helper and evidence scripts (to be added)
+├── templates/           # network-template.yaml
+└── scripts/             # extend-deploy-role.sh (evidence script to come)
 ```
 
 ## Open questions
