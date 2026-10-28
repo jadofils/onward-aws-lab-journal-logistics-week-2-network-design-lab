@@ -26,6 +26,9 @@ set -euo pipefail
 ROLE_NAME="onward-cfn-network-deploy-role"
 DEPLOY_POLICY_NAME="onward-cfn-network-deploy-policy"
 GITSYNC_POLICY_NAME="onward-cfn-network-gitsync-policy"
+# Means: the GitSync stack this role may run change sets on.
+# AWS uses: onward-aws-lab-journal-week-2 unless STACK_NAME is set before running the script.
+STACK_NAME="${STACK_NAME:-onward-aws-lab-journal-week-2}"
 # Means: who approved this access; recorded as a tag (company rule).
 # AWS uses: head-of-security unless APPROVED_BY is set before running the script.
 APPROVED_BY="${APPROVED_BY:-head-of-security}"
@@ -57,6 +60,7 @@ fi
 echo "Role        : ${ROLE_NAME}"
 echo "Policies    : ${DEPLOY_POLICY_NAME}, ${GITSYNC_POLICY_NAME}"
 echo "ApprovedBy  : ${APPROVED_BY}"
+echo "Stack       : ${STACK_NAME}"
 
 # ------------------------- trust: CloudFormation only ------------------------
 # Trust policy: WHO may assume the role. Only CloudFormation and the Git sync
@@ -262,7 +266,7 @@ cat > "${WORK_DIR}/deploy-policy.json" <<EOF
 EOF
 
 # ------- Git sync: read the repo, run change sets, watch for new commits -----
-# Same as Week 1, except change sets are limited to the onward-*-network stack
+# Same as Week 1, except change sets are limited to STACK_NAME (and onward-*-network)
 # and the role can only pass ITSELF to CloudFormation.
 cat > "${WORK_DIR}/gitsync-policy.json" <<EOF
 {
@@ -277,7 +281,10 @@ cat > "${WORK_DIR}/gitsync-policy.json" <<EOF
         "cloudformation:DescribeStacks", "cloudformation:ExecuteChangeSet",
         "cloudformation:GetTemplate", "cloudformation:ListChangeSets"
       ],
-      "Resource": "arn:aws:cloudformation:*:${ACCOUNT_ID}:stack/onward-*-network/*"
+      "Resource": [
+        "arn:aws:cloudformation:*:${ACCOUNT_ID}:stack/${STACK_NAME}/*",
+        "arn:aws:cloudformation:*:${ACCOUNT_ID}:stack/onward-*-network/*"
+      ]
     },
     {
       "Sid": "ListAndValidate",

@@ -27,7 +27,7 @@ Trust: only CloudFormation and the Git sync service, only from this account.
 | `ServerRole`, `ServerRolePolicy`, `PassServerRole` | Only `onward-*-ec2-ssm-role` and its instance profile; it can attach only `AmazonSSMManagedInstanceCore` and pass the role only to EC2 |
 | `ServiceLinkedRoles` | Only the Auto Scaling and Elastic Load Balancing service-linked roles |
 | `Budget` | Only `onward-*` budgets |
-| Git sync policy | Change sets only on `onward-*-network` stacks; pass only this role, only to CloudFormation |
+| Git sync policy | Change sets only on the `STACK_NAME` stack (default `onward-aws-lab-journal-week-2`) and `onward-*-network` stacks; pass only this role, only to CloudFormation |
 
 ## Known limits (check during the first deploy and delete)
 
