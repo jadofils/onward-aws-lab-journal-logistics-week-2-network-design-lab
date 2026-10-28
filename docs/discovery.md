@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | Lab | Designing a Secure Network for the Onward Logistics Order System (Week 2) |
-| Name | [Your full name] |
+| Name | Jado Fils SEZIKEYE |
 | Date | 2026-10-28 |
 | Client | Onward Logistics (see the [Client Profile](../../docs/client-profile.md)) |
 
@@ -65,7 +65,7 @@ The other options were rejected because they either leave internal servers on th
 | AWS CloudFormation + GitSync | Builds and updates everything from the repository | Repeatable, reviewed and rebuildable, as the brief and the Client Profile require |
 | AWS Budgets | Alerts when monthly network spend passes a set amount | The Client Profile requires active budget alerts; it gives Finance early warning |
 
-**Naming and tags.** Resources follow `onward-dev-<purpose>` (for example `onward-dev-orders-vpc`, `onward-dev-web-alb`) and carry `Project=onward`, `Owner=[Your full name]` and `Environment=dev`.
+**Naming and tags.** Resources follow `onward-dev-<purpose>` (for example `onward-dev-orders-vpc`, `onward-dev-web-alb`) and carry `Project=onward`, `Owner=Jado Fils SEZIKEYE` and `Environment=dev`.
 
 **Region.** EU (Ireland), `eu-west-1`: it needs no opt-in, offers every service in this design and the Free Tier, and costs less than the Africa (Cape Town) Region. Latency from Lagos and Accra must be measured before a production launch.
 
