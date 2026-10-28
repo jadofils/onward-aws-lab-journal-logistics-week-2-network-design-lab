@@ -31,7 +31,7 @@ Full brief: [docs/lab-brief.md](docs/lab-brief.md) · Client background: [docs/c
 - [x] **Discovery report:** [docs/discovery.md](docs/discovery.md), committed **before** any template, so the Git history shows the thinking came first (fill in your name, then review)
 - [x] **Template and deployment file:** [templates/network-template.yaml](templates/network-template.yaml) and [network-template-deployment.yaml](network-template-deployment.yaml)
 - [x] **GitSync stack** `onward-aws-lab-journal-week-2` using deployment file path `network-template-deployment.yaml`
-- [ ] **Evidence:** 5 of 7 client checks recorded in [Deployment evidence](#deployment-evidence); evidence script to come
+- [ ] **Evidence:** 6 of 7 client checks recorded in [Deployment evidence](#deployment-evidence); evidence script to come
 - [x] **Architecture diagram** of the resources inside the VPC (optional): see [Solution architecture](#solution-architecture)
 - [ ] **Live code review:** walk through the code, demonstrate the client's checks, defend the reasoning
 
@@ -46,7 +46,7 @@ Stack `onward-aws-lab-journal-week-2` in eu-west-1, deployed by GitSync from `ma
 | 3 | Servers are private, one of each per zone | 4 servers, none with a public IP (table below) | ✅ |
 | 4 | Engineers can administer every server without open ports | All 4 servers `Online` in Session Manager | ✅ |
 | 5 | No admin ports open | Inbound rules: alb-sg 80, web-sg 80, order-sg 8080; no port 22 | ✅ |
-| 6 | Internal server can download a package | `sudo dnf install -y htop` in a Session Manager session on an order server | ⏳ to run |
+| 6 | Internal server can download a package | Session Manager session on `i-0e68984f1228eb301` (order, eu-west-1a): `sudo dnf install -y htop` installed `htop-3.2.1` (183 kB) from the `amazonlinux` repo; `curl localhost:8080` returned "Onward order service (dev): OK" | ✅ |
 | 7 | No one on the internet can reach an internal server | Order servers have no public IP and no inbound route; direct connection test | ⏳ to run |
 
 | Server | Instance | Zone | Private IP | Public IP |
