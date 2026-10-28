@@ -6,6 +6,7 @@ The lab brief and the discovery report for Week 2.
 |------|------------|--------|
 | [lab-brief.md](lab-brief.md) | The lab brief: business scenario, the four leaders' needs, technical rules, client checks, deliverables and rubric | Added |
 | [discovery.md](discovery.md) | Discovery report: what you found (common solutions, what happens with no solution) and business value (chosen approach, AWS services and why, who benefits) | Draft, committed before any template |
+| [Discovery Report.docx](Discovery%20Report.docx) | The same discovery report in the course Word template, for submission | Draft |
 
 ## Planned additions
 
