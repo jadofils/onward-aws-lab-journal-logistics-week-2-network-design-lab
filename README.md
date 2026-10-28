@@ -28,7 +28,7 @@ Full brief: [docs/lab-brief.md](docs/lab-brief.md)
 
 ## Stages and deliverables
 
-- [ ] **Discovery report:** write and commit `docs/discovery.md` **before** any template, so the Git history shows the thinking came first
+- [x] **Discovery report:** [docs/discovery.md](docs/discovery.md), committed **before** any template, so the Git history shows the thinking came first (fill in your name, then review)
 - [ ] **Template and deployment file:** `templates/` and `deployment.yaml` in this folder
 - [ ] **GitSync stack** using deployment file path `week-2-secure-network/deployment.yaml`
 - [ ] **Evidence:** scripts and screenshots proving each client check
@@ -43,7 +43,7 @@ week-2-secure-network/
 ├── deployment.yaml      # GitSync deployment file (to be added)
 ├── docs/
 │   ├── lab-brief.md     # Lab brief and client requirements
-│   └── discovery.md     # Discovery report (to be added first)
+│   └── discovery.md     # Discovery report (committed first)
 ├── templates/           # CloudFormation templates (to be added)
 └── scripts/             # Helper and evidence scripts (to be added)
 ```
@@ -51,4 +51,4 @@ week-2-secure-network/
 ## Open questions
 
 - The brief asks for the discovery report at `docs/discovery.md`. In this repository it lives at `week-2-secure-network/docs/discovery.md`; check with the instructor that this is acceptable.
-- The naming and tagging standards are in the Client Profile, which is not in the repository yet.
+- Naming and tagging follow the [Client Profile](../docs/client-profile.md): `onward-dev-<purpose>`, tags `Project=onward`, `Owner`, `Environment`.
