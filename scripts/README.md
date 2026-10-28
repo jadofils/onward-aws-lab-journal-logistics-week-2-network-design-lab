@@ -4,28 +4,33 @@ Helper and evidence scripts for Week 2. They run in AWS CloudShell, like Week 1'
 
 | Script | Purpose | Changes AWS? |
 |--------|---------|--------------|
-| [extend-deploy-role.sh](extend-deploy-role.sh) | Adds `onward-cfn-network-policy` to the existing `onward-cfn-deploy-role`, so the same role can deploy the Week 2 network through GitSync | Yes: creates or updates one IAM policy and attaches it |
+| [create-network-deploy-role.sh](create-network-deploy-role.sh) | Creates `onward-cfn-network-deploy-role`, the role GitSync and CloudFormation use for the `onward-dev-network` stack. Separate from Week 1's role. `--delete` removes it again | Yes: one IAM role and two customer managed policies |
 
 ## Run order
 
-1. Week 1's [`create-deploy-role.sh`](https://github.com/jadofils/onward-aws-lab-journal/blob/main/week-1-secure-onboarding/scripts/create-deploy-role.sh) must already have created `onward-cfn-deploy-role`.
-2. Upload `extend-deploy-role.sh` to CloudShell and run `bash extend-deploy-role.sh`.
-3. Create the GitSync stack `onward-dev-network` with deployment file `network-template-deployment.yaml`.
+1. In CloudShell: `bash create-network-deploy-role.sh`
+2. Create the GitSync stack `onward-dev-network` with deployment file `network-template-deployment.yaml`, and select `onward-cfn-network-deploy-role` as both the Git sync IAM role and the stack's IAM role.
 
-## What the new policy allows
+To record a different approver: `APPROVED_BY="name-or-role" bash create-network-deploy-role.sh`
+
+## What the role can do
+
+Trust: only CloudFormation and the Git sync service, only from this account.
 
 | Statement | Scope |
 |-----------|-------|
-| `Ec2Network` | VPC, subnets, gateways, Elastic IPs, NAT, routes, S3 endpoint, security groups, launch templates, tags |
-| `ReadAmiParameter` | Only the public Amazon Linux AMI parameters |
-| `LoadBalancer`, `AutoScaling` | The load balancer, target group, listener and Auto Scaling groups |
-| `ServerRole`, `ServerRolePolicy` | Only `onward-*-ec2-ssm-role`, and it can attach only `AmazonSSMManagedInstanceCore` |
-| `PassServerRole` | Pass that role to EC2 only |
+| `Ec2Read`, `ReadAmiParameter` | Read only; the AMI lookup is limited to the public Amazon Linux parameters |
+| `Ec2Create`, `LoadBalancerCreate`, `AutoScalingCreate` | Create network pieces, launch templates, the load balancer and Auto Scaling groups. Creating cannot harm existing resources |
+| `Ec2ChangeOnlyOnward`, `LoadBalancerChange`, `AutoScalingChange` | Delete, detach, revoke, re-route or update **only resources tagged `Project=onward`**. The stack tags put that tag on everything the template creates |
+| `Ec2LaunchTemplates` | Delete launch templates and VPC endpoints (no tag condition; see below) |
+| `Ec2RunServers` | `ec2:RunInstances`, checked when an Auto Scaling group is created. There is **no** `ec2:TerminateInstances`: Auto Scaling removes servers with its own service role |
+| `ServerRole`, `ServerRolePolicy`, `PassServerRole` | Only `onward-*-ec2-ssm-role` and its instance profile; it can attach only `AmazonSSMManagedInstanceCore` and pass the role only to EC2 |
 | `ServiceLinkedRoles` | Only the Auto Scaling and Elastic Load Balancing service-linked roles |
 | `Budget` | Only `onward-*` budgets |
+| Git sync policy | Change sets only on `onward-*-network` stacks; pass only this role, only to CloudFormation |
 
-## Planned
+## Known limits (check during the first deploy and delete)
 
-| Script | Purpose |
-|--------|---------|
-| Evidence script | Proves the client's checks: front end reachable, internal servers unreachable from the internet, package download works, admin access without open ports |
+- Tag conditions rely on CloudFormation copying the stack tag `Project=onward` onto each resource. If a resource type does not receive it, deleting the stack fails with "not authorized" on that resource; the error names the action to fix.
+- Launch template and VPC endpoint deletes have no tag condition, because it is not certain these resources receive stack tags.
+- Test it once: deploy, update, then delete the stack, and read the events for any `AccessDenied`.
