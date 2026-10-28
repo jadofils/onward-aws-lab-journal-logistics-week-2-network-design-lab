@@ -31,7 +31,7 @@ Full brief: [docs/lab-brief.md](docs/lab-brief.md) · Client background: [docs/c
 - [x] **Discovery report:** [docs/discovery.md](docs/discovery.md), committed **before** any template, so the Git history shows the thinking came first (fill in your name, then review)
 - [x] **Template and deployment file:** [templates/network-template.yaml](templates/network-template.yaml) and [network-template-deployment.yaml](network-template-deployment.yaml)
 - [x] **GitSync stack** `onward-aws-lab-journal-week-2` using deployment file path `network-template-deployment.yaml`
-- [x] **Evidence:** all 7 client checks recorded in [Deployment evidence](#deployment-evidence); evidence script to come
+- [x] **Evidence:** all 7 client checks recorded in [Deployment evidence](#deployment-evidence); re-run them any time with [scripts/evidence.sh](scripts/evidence.sh)
 - [x] **Architecture diagram** of the resources inside the VPC (optional): see [Solution architecture](#solution-architecture)
 - [ ] **Live code review:** walk through the code, demonstrate the client's checks, defend the reasoning
 
@@ -100,7 +100,7 @@ onward-aws-lab-journal-logistics-week-2-network-design-lab/
 │   ├── architecture.drawio  # draw.io: architecture, traffic, zone failure, cost (4 pages)
 │   └── images/          # PNG exports of each diagram page
 ├── templates/           # network-template.yaml
-└── scripts/             # create-network-deploy-role.sh (evidence script to come)
+└── scripts/             # create-network-deploy-role.sh, evidence.sh
 ```
 
 ## Company standards

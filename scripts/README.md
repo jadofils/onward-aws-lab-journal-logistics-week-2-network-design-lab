@@ -5,6 +5,7 @@ Helper and evidence scripts for Week 2. They run in AWS CloudShell, like Week 1'
 | Script | Purpose | Changes AWS? |
 |--------|---------|--------------|
 | [create-network-deploy-role.sh](create-network-deploy-role.sh) | Creates `onward-cfn-network-deploy-role`, the role GitSync and CloudFormation use for the `onward-aws-lab-journal-week-2` stack. Separate from Week 1's role. `--delete` removes it again | Yes: one IAM role and two customer managed policies |
+| [evidence.sh](evidence.sh) | Runs every client check against the live stack and saves a report in `evidence-<timestamp>/` (gitignored). `-p` adds the package download test | No, unless `-p` (installs htop on one order server) |
 
 ## Run order
 
