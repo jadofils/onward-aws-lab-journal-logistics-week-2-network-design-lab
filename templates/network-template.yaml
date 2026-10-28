@@ -79,6 +79,12 @@ Parameters:
   BudgetAlertEmail:
     Type: String
     Default: ""
+  # Who approved this access. Saved as a tag on the server role for the audit trail.
+  # Means: an input that records the approver's name or role.
+  # AWS uses: the value from network-template-deployment.yaml; if missing, the Default below.
+  ApprovedBy:
+    Type: String
+    Default: head-of-security
 
 # -----------------------------------------------------------------------------
 # CONDITIONS - true/false rules that decide whether some resources are created.
@@ -554,6 +560,13 @@ Resources:
       # AWS uses: AmazonSSMManagedInstanceCore, which lets the SSM Agent register and open sessions.
       ManagedPolicyArns:
         - !Sub arn:${AWS::Partition}:iam::aws:policy/AmazonSSMManagedInstanceCore
+      # Means: every identity carries ApprovedBy and Project tags (company rule).
+      # AWS uses: ApprovedBy = head-of-security and Project = onward on the role.
+      Tags:
+        - Key: ApprovedBy
+          Value: !Ref ApprovedBy
+        - Key: Project
+          Value: onward
 
   # Wrapper that hands the role to an EC2 server.
   # Means: InstanceProfile is the logical ID.

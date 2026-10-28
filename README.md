@@ -77,7 +77,7 @@ onward-aws-lab-journal-logistics-week-2-network-design-lab/
 │   ├── architecture.drawio  # draw.io: architecture, traffic, zone failure, cost (4 pages)
 │   └── images/          # PNG exports of each diagram page
 ├── templates/           # network-template.yaml
-└── scripts/             # extend-deploy-role.sh (evidence script to come)
+└── scripts/             # create-network-deploy-role.sh (evidence script to come)
 ```
 
 ## Company standards

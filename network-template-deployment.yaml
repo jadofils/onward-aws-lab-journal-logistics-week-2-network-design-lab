@@ -10,7 +10,7 @@
 #   - Repository      : <your repo>  (via AWS CodeConnections)
 #   - Branch          : main
 #   - Deployment file : network-template-deployment.yaml
-#   - IAM role        : onward-cfn-deploy-role
+#   - IAM role        : onward-cfn-network-deploy-role (scripts/create-network-deploy-role.sh)
 #   - Capabilities    : CAPABILITY_NAMED_IAM
 # ---------------------------------------------------------------------------
 
@@ -41,6 +41,9 @@ parameters:
   # Means: who receives budget alerts. Empty means the budget exists but sends no email.
   # AWS uses: BudgetAlertEmail = "" until you add an address.
   BudgetAlertEmail: ""
+  # Means: who approved this access; recorded as a tag on the server role.
+  # AWS uses: ApprovedBy = head-of-security
+  ApprovedBy: head-of-security
 
 # Stack-level tags. CloudFormation copies them onto every resource that supports tags.
 # Means: the company tags from the Client Profile.
@@ -58,3 +61,6 @@ tags:
   # Means: how the resources are managed, so nobody edits them by hand in the console.
   # AWS uses: ManagedBy = cloudformation-gitsync
   ManagedBy: cloudformation-gitsync
+  # Means: who approved the access this stack creates.
+  # AWS uses: ApprovedBy = head-of-security
+  ApprovedBy: head-of-security
