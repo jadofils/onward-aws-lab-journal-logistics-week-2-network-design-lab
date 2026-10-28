@@ -1,6 +1,6 @@
 # Week 2 Scripts
 
-Helper and evidence scripts for Week 2. They run in AWS CloudShell, like Week 1's ([../../week-1-secure-onboarding/scripts/](../../week-1-secure-onboarding/scripts/)).
+Helper and evidence scripts for Week 2. They run in AWS CloudShell, like Week 1's ([onward-aws-lab-journal](https://github.com/jadofils/onward-aws-lab-journal/tree/main/week-1-secure-onboarding/scripts)).
 
 | Script | Purpose | Changes AWS? |
 |--------|---------|--------------|
@@ -8,9 +8,9 @@ Helper and evidence scripts for Week 2. They run in AWS CloudShell, like Week 1'
 
 ## Run order
 
-1. Week 1's `create-deploy-role.sh` must already have created `onward-cfn-deploy-role`.
+1. Week 1's [`create-deploy-role.sh`](https://github.com/jadofils/onward-aws-lab-journal/blob/main/week-1-secure-onboarding/scripts/create-deploy-role.sh) must already have created `onward-cfn-deploy-role`.
 2. Upload `extend-deploy-role.sh` to CloudShell and run `bash extend-deploy-role.sh`.
-3. Create the GitSync stack `onward-dev-network` with deployment file `week-2-secure-network/deployment.yaml`.
+3. Create the GitSync stack `onward-dev-network` with deployment file `deployment.yaml`.
 
 ## What the new policy allows
 

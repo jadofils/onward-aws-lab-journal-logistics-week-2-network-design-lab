@@ -1,14 +1,16 @@
 # Week 2 Docs
 
-The lab brief and the discovery report for Week 2.
+The lab brief, client profile, discovery report and architecture diagrams for Week 2.
 
 | File | What it is | Status |
 |------|------------|--------|
 | [lab-brief.md](lab-brief.md) | The lab brief: business scenario, the four leaders' needs, technical rules, client checks, deliverables and rubric | Added |
+| [client-profile.md](client-profile.md) | Onward Logistics: the company, its stakeholders, and the naming, tagging and budget standards every lab must follow | Reference |
+| [discovery-report-template.md](discovery-report-template.md) | The course template the discovery report follows | Reference |
 | [discovery.md](discovery.md) | Discovery report: what you found (common solutions, what happens with no solution) and business value (chosen approach, AWS services and why, who benefits) | Draft, committed before any template |
 | [Discovery Report.docx](Discovery%20Report.docx) | The same discovery report in the course Word template, for submission | Draft |
 | [architecture.drawio](architecture.drawio) | draw.io file with 4 pages: architecture inside the VPC, traffic and security groups, what happens when a zone fails, monthly cost | Planned design |
-| [images/](images/) | PNG export of each diagram page, shown in the [Week 2 README](../README.md#solution-architecture) | Planned design |
+| [images/](images/) | PNG export of each diagram page, shown in the [README](../README.md#solution-architecture) | Planned design |
 
 ## Updating the images
 

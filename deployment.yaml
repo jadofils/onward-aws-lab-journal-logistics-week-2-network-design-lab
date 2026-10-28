@@ -3,21 +3,21 @@
 # Project : Onward Logistics - Secure Network for the Order System
 #
 # Tells CloudFormation GitSync which template to deploy and with which
-# parameters and tags. Separate from the Week 1 stack at the repo root.
+# parameters and tags. This file must stay at the repository root.
 #
 # Usage (console): CloudFormation > Create stack > Sync from Git
 #   - Stack name      : onward-dev-network
 #   - Repository      : <your repo>  (via AWS CodeConnections)
 #   - Branch          : main
-#   - Deployment file : week-2-secure-network/deployment.yaml
+#   - Deployment file : deployment.yaml
 #   - IAM role        : onward-cfn-deploy-role
 #   - Capabilities    : CAPABILITY_NAMED_IAM
 # ---------------------------------------------------------------------------
 
 # Path of the CloudFormation template, relative to the repository root.
 # Means: which template file GitSync should deploy.
-# AWS uses: week-2-secure-network/templates/network-template.yaml from the repo.
-template-file-path: week-2-secure-network/templates/network-template.yaml
+# AWS uses: templates/network-template.yaml from the repo.
+template-file-path: templates/network-template.yaml
 
 # Values passed to the template's Parameters section on every deploy.
 # Means: input values for the template; each name must match a parameter in the template.

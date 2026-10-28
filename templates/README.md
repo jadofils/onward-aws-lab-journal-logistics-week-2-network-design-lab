@@ -35,8 +35,8 @@ CloudFormation template for the Week 2 network, drawn in [../docs/images/01-arch
 ## Validate before a PR
 
 ```bash
-cfn-lint week-2-secure-network/templates/network-template.yaml
-aws cloudformation validate-template --template-body file://week-2-secure-network/templates/network-template.yaml
+cfn-lint templates/network-template.yaml
+aws cloudformation validate-template --template-body file://templates/network-template.yaml
 ```
 
 Check which instance types are Free Tier eligible in your account (read-only):

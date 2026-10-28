@@ -4,7 +4,7 @@ Week 2 lab: a highly available, secure network for the Onward Logistics order sy
 
 **Module:** Network & Security on AWS · **Week:** 2 · **Status:** Template drafted, not yet deployed
 
-Full brief: [docs/lab-brief.md](docs/lab-brief.md)
+Full brief: [docs/lab-brief.md](docs/lab-brief.md) · Client background: [docs/client-profile.md](docs/client-profile.md) · Week 1 lab: [onward-aws-lab-journal](https://github.com/jadofils/onward-aws-lab-journal)
 
 ## Client objectives
 
@@ -30,14 +30,14 @@ Full brief: [docs/lab-brief.md](docs/lab-brief.md)
 
 - [x] **Discovery report:** [docs/discovery.md](docs/discovery.md), committed **before** any template, so the Git history shows the thinking came first (fill in your name, then review)
 - [x] **Template and deployment file:** [templates/network-template.yaml](templates/network-template.yaml) and [deployment.yaml](deployment.yaml)
-- [ ] **GitSync stack** using deployment file path `week-2-secure-network/deployment.yaml`
+- [ ] **GitSync stack** using deployment file path `deployment.yaml`
 - [ ] **Evidence:** scripts and screenshots proving each client check
 - [x] **Architecture diagram** of the resources inside the VPC (optional): see [Solution architecture](#solution-architecture)
 - [ ] **Live code review:** walk through the code, demonstrate the client's checks, defend the reasoning
 
 ## Solution architecture
 
-The planned design, drawn before the build. Source: [docs/architecture.drawio](docs/architecture.drawio) · [open in draw.io](https://app.diagrams.net/#Hjadofils%2Fonward-aws-lab-journal%2Fmain%2Fweek-2-secure-network%2Fdocs%2Farchitecture.drawio)
+The planned design, drawn before the build. Source: [docs/architecture.drawio](docs/architecture.drawio) · [open in draw.io](https://app.diagrams.net/#Hjadofils%2Fonward-aws-lab-journal-logistics-week-2-network-design-lab%2Fmain%2Fdocs%2Farchitecture.drawio)
 
 ![Week 2 architecture: an Application Load Balancer in two public subnets sends traffic to web servers in private subnets in two Availability Zones; order servers sit in a second private tier; each zone has its own NAT gateway for outbound updates; engineers reach servers through Session Manager with no open ports](docs/images/01-architecture.png)
 
@@ -64,19 +64,22 @@ No security group allows port 22. Engineers use Session Manager, and every serve
 ## Folder layout
 
 ```
-week-2-secure-network/
+onward-aws-lab-journal-logistics-week-2-network-design-lab/
 ├── README.md            # This file
+├── .gitignore           # Keeps evidence output, .env and keys out of Git
 ├── deployment.yaml      # GitSync deployment file (stack onward-dev-network)
 ├── docs/
 │   ├── lab-brief.md     # Lab brief and client requirements
+│   ├── client-profile.md    # Onward Logistics profile, stakeholders and standards
+│   ├── discovery-report-template.md  # Course template for the discovery report
 │   ├── discovery.md     # Discovery report (committed first)
+│   ├── Discovery Report.docx  # Same report in the course Word template
 │   ├── architecture.drawio  # draw.io: architecture, traffic, zone failure, cost (4 pages)
 │   └── images/          # PNG exports of each diagram page
 ├── templates/           # network-template.yaml
 └── scripts/             # extend-deploy-role.sh (evidence script to come)
 ```
 
-## Open questions
+## Company standards
 
-- The brief asks for the discovery report at `docs/discovery.md`. In this repository it lives at `week-2-secure-network/docs/discovery.md`; check with the instructor that this is acceptable.
-- Naming and tagging follow the [Client Profile](../docs/client-profile.md): `onward-dev-<purpose>`, tags `Project=onward`, `Owner`, `Environment`.
+- Naming and tagging follow the [Client Profile](docs/client-profile.md): `onward-dev-<purpose>`, tags `Project=onward`, `Owner`, `Environment`.

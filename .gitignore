@@ -1,0 +1,10 @@
+# Evidence output, local secrets and keys: never commit
+evidence-*/
+.env
+*.pem
+
+# Local AI assistant settings
+.claude/
+
+# Office lock files
+~$*

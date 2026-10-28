@@ -5,7 +5,7 @@
 | Lab | Designing a Secure Network for the Onward Logistics Order System (Week 2) |
 | Name | Jado Fils SEZIKEYE |
 | Date | 2026-10-28 |
-| Client | Onward Logistics (see the [Client Profile](../../docs/client-profile.md)) |
+| Client | Onward Logistics (see the [Client Profile](client-profile.md)) |
 
 ## 1. What you found
 

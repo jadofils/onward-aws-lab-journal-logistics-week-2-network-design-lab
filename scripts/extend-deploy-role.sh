@@ -34,7 +34,7 @@ echo "Policy  : ${POLICY_NAME}"
 
 # The Week 1 script must have created the role first.
 if ! aws iam get-role --role-name "$ROLE_NAME" >/dev/null 2>&1; then
-  echo "Role ${ROLE_NAME} not found. Run week-1-secure-onboarding/scripts/create-deploy-role.sh first." >&2
+  echo "Role ${ROLE_NAME} not found. Run create-deploy-role.sh from the Week 1 repo (onward-aws-lab-journal) first." >&2
   exit 1
 fi
 
