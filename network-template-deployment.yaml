@@ -1,66 +1,35 @@
-# ---------------------------------------------------------------------------
-# network-template-deployment.yaml - CloudFormation GitSync deployment file (Week 2)
-# Project : Onward Logistics - Secure Network for the Order System
-#
-# Tells CloudFormation GitSync which template to deploy and with which
-# parameters and tags. This file must stay at the repository root.
-#
-# Usage (console): CloudFormation > Create stack > Sync from Git
-#   - Stack name      : onward-aws-lab-journal-week-2
-#   - Repository      : <your repo>  (via AWS CodeConnections)
-#   - Branch          : main
-#   - Deployment file : network-template-deployment.yaml
-#   - IAM role        : onward-cfn-network-deploy-role (scripts/create-network-deploy-role.sh)
-#   - Capabilities    : CAPABILITY_NAMED_IAM
-# ---------------------------------------------------------------------------
+# =============================================================================
+# network-template-deployment.yaml - CloudFormation GitSync deployment file
+# Stack onward-aws-lab-journal-week-2, branch main, IAM role onward-cfn-network-deploy-role
+# (created in the IAM console). Must stay at the repository root.
+# =============================================================================
 
-# Path of the CloudFormation template, relative to the repository root.
-# Means: which template file GitSync should deploy.
-# AWS uses: templates/network-template.yaml from the repo.
+# =============================================================================
+# 1. TEMPLATE
+# The template GitSync deploys, relative to the repository root.
+# =============================================================================
 template-file-path: templates/network-template.yaml
 
-# Values passed to the template's Parameters section on every deploy.
-# Means: input values for the template; each name must match a parameter in the template.
-# AWS uses: these values instead of the template's Default values.
+# =============================================================================
+# 2. PARAMETERS
+# Values for the template's Parameters; NatGatewayMode "single" saves about $33 a month.
+# =============================================================================
 parameters:
-  # Means: the environment part of every name (onward-dev-...).
-  # AWS uses: Environment = dev
   Environment: dev
-  # Means: the full name shown on every front-end page.
-  # AWS uses: OwnerName = Jado Fils SEZIKEYE
   OwnerName: Jado Fils SEZIKEYE
-  # Means: the server size; must be Free Tier eligible in your account.
-  # AWS uses: InstanceType = t3.micro
   InstanceType: t3.micro
-  # Means: one NAT gateway per zone (resilient). "single" saves about $33 a month.
-  # AWS uses: NatGatewayMode = one-per-az
   NatGatewayMode: one-per-az
-  # Means: the monthly budget limit in US dollars.
-  # AWS uses: MonthlyBudgetUsd = 120
   MonthlyBudgetUsd: "120"
-  # Means: who receives budget alerts. Empty means the budget exists but sends no email.
-  # AWS uses: BudgetAlertEmail = "" until you add an address.
   BudgetAlertEmail: ""
-  # Means: who approved this access; recorded as a tag on the server role.
-  # AWS uses: ApprovedBy = head-of-security
   ApprovedBy: head-of-security
 
-# Stack-level tags. CloudFormation copies them onto every resource that supports tags.
-# Means: the company tags from the Client Profile.
-# AWS uses: these tags on the stack and on every taggable resource.
+# =============================================================================
+# 3. TAGS
+# Company tags from the Client Profile, copied onto every taggable resource.
+# =============================================================================
 tags:
-  # Means: which project the resources belong to.
-  # AWS uses: Project = onward
   Project: onward
-  # Means: who owns the resources.
-  # AWS uses: Owner = Jado Fils SEZIKEYE
   Owner: Jado Fils SEZIKEYE
-  # Means: which environment this is.
-  # AWS uses: Environment = dev
   Environment: dev
-  # Means: how the resources are managed, so nobody edits them by hand in the console.
-  # AWS uses: ManagedBy = cloudformation-gitsync
   ManagedBy: cloudformation-gitsync
-  # Means: who approved the access this stack creates.
-  # AWS uses: ApprovedBy = head-of-security
   ApprovedBy: head-of-security
