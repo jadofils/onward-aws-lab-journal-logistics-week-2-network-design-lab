@@ -8,7 +8,14 @@ Policy documents for `onward-cfn-network-deploy-role`, the role GitSync and Clou
 | [deploy-policy.json](deploy-policy.json) | Customer managed policy `onward-cfn-network-deploy-policy` | Create the network, servers, load balancer and budget; change or delete only resources tagged `Project=onward` |
 | [gitsync-policy.json](gitsync-policy.json) | Customer managed policy `onward-cfn-network-gitsync-policy` | Run change sets on this stack only, and pass this role only to CloudFormation |
 
-Each policy is a separate managed policy because IAM limits one managed policy to 6,144 characters. The deploy policy uses about 4,700, so splitting keeps room to grow.
+Least privilege, as the Client Profile's Access standard requires ("grant only what a person or system needs"):
+
+- **One Region.** Every regional permission is limited to eu-west-1, by ARN or by the `aws:RequestedRegion` condition. IAM and Budgets are global, so they are limited by name (`onward-*`) instead.
+- **One stack.** Change sets are allowed only on `onward-aws-lab-journal-week-2`.
+- **Only onward resources.** Changes and deletes need the tag `Project=onward`.
+- **`"*"` only where AWS requires it.** Create actions (the resource ID does not exist yet) and `ListStacks` / `ValidateTemplate` (no resource-level permissions) use `"*"`, always with a Region condition.
+
+Each policy is a separate managed policy because IAM limits one managed policy to 6,144 characters. The deploy policy uses about 5,200, so splitting keeps room to grow.
 
 ## Create the role in the console
 

@@ -8,7 +8,12 @@
         "ec2:Describe*",
         "ec2:GetLaunchTemplateData"
       ],
-      "Resource": "*"
+      "Resource": "*",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "eu-west-1"
+        }
+      }
     },
     {
       "Sid": "Ec2Create",
@@ -35,7 +40,12 @@
         "ec2:ModifyLaunchTemplate",
         "ec2:CreateTags"
       ],
-      "Resource": "*"
+      "Resource": "*",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "eu-west-1"
+        }
+      }
     },
     {
       "Sid": "Ec2ChangeOnlyOnward",
@@ -61,7 +71,8 @@
       "Resource": "*",
       "Condition": {
         "StringEquals": {
-          "aws:ResourceTag/Project": "onward"
+          "aws:ResourceTag/Project": "onward",
+          "aws:RequestedRegion": "eu-west-1"
         }
       }
     },
@@ -73,13 +84,23 @@
         "ec2:DeleteLaunchTemplateVersions",
         "ec2:DeleteVpcEndpoints"
       ],
-      "Resource": "*"
+      "Resource": "*",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "eu-west-1"
+        }
+      }
     },
     {
       "Sid": "Ec2RunServers",
       "Effect": "Allow",
       "Action": "ec2:RunInstances",
-      "Resource": "*"
+      "Resource": "*",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "eu-west-1"
+        }
+      }
     },
     {
       "Sid": "ReadAmiParameter",
@@ -88,7 +109,7 @@
         "ssm:GetParameter",
         "ssm:GetParameters"
       ],
-      "Resource": "arn:aws:ssm:*::parameter/aws/service/ami-amazon-linux-latest/*"
+      "Resource": "arn:aws:ssm:eu-west-1::parameter/aws/service/ami-amazon-linux-latest/*"
     },
     {
       "Sid": "LoadBalancerCreate",
@@ -106,7 +127,12 @@
         "elasticloadbalancing:SetSecurityGroups",
         "elasticloadbalancing:SetSubnets"
       ],
-      "Resource": "*"
+      "Resource": "*",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "eu-west-1"
+        }
+      }
     },
     {
       "Sid": "LoadBalancerChange",
@@ -122,7 +148,8 @@
       "Resource": "*",
       "Condition": {
         "StringEquals": {
-          "aws:ResourceTag/Project": "onward"
+          "aws:ResourceTag/Project": "onward",
+          "aws:RequestedRegion": "eu-west-1"
         }
       }
     },
@@ -134,7 +161,12 @@
         "autoscaling:CreateAutoScalingGroup",
         "autoscaling:CreateOrUpdateTags"
       ],
-      "Resource": "*"
+      "Resource": "*",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "eu-west-1"
+        }
+      }
     },
     {
       "Sid": "AutoScalingChange",
@@ -153,7 +185,8 @@
       "Resource": "*",
       "Condition": {
         "StringEquals": {
-          "aws:ResourceTag/Project": "onward"
+          "aws:ResourceTag/Project": "onward",
+          "aws:RequestedRegion": "eu-west-1"
         }
       }
     },

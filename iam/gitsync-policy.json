@@ -14,10 +14,7 @@
         "cloudformation:GetTemplate",
         "cloudformation:ListChangeSets"
       ],
-      "Resource": [
-        "arn:aws:cloudformation:*:<ACCOUNT_ID>:stack/onward-aws-lab-journal-week-2/*",
-        "arn:aws:cloudformation:*:<ACCOUNT_ID>:stack/onward-*-network/*"
-      ]
+      "Resource": "arn:aws:cloudformation:eu-west-1:<ACCOUNT_ID>:stack/onward-aws-lab-journal-week-2/*"
     },
     {
       "Sid": "ListAndValidate",
@@ -26,7 +23,12 @@
         "cloudformation:ListStacks",
         "cloudformation:ValidateTemplate"
       ],
-      "Resource": "*"
+      "Resource": "*",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "eu-west-1"
+        }
+      }
     },
     {
       "Sid": "PolicyForManagedRules",
@@ -35,7 +37,7 @@
         "events:PutRule",
         "events:PutTargets"
       ],
-      "Resource": "*",
+      "Resource": "arn:aws:events:eu-west-1:<ACCOUNT_ID>:rule/*",
       "Condition": {
         "StringEquals": {
           "events:ManagedBy": "cloudformation.sync.codeconnections.amazonaws.com"
@@ -46,7 +48,7 @@
       "Sid": "PolicyForDescribingRule",
       "Effect": "Allow",
       "Action": "events:DescribeRule",
-      "Resource": "*"
+      "Resource": "arn:aws:events:eu-west-1:<ACCOUNT_ID>:rule/*"
     },
     {
       "Sid": "PassThisRoleToCloudFormation",

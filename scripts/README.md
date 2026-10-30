@@ -28,7 +28,8 @@ Trust: only CloudFormation (`cloudformation.amazonaws.com`) and the Git sync ser
 | `ServerRole`, `ServerRolePolicy`, `PassServerRole` | Only `onward-*-ec2-ssm-role` and its instance profile; it can attach only `AmazonSSMManagedInstanceCore` and pass the role only to EC2 |
 | `ServiceLinkedRoles` | Only the Auto Scaling and Elastic Load Balancing service-linked roles |
 | `Budget` | Only `onward-*` budgets |
-| Git sync policy | Change sets only on the `onward-aws-lab-journal-week-2` stack and `onward-*-network` stacks; pass only this role, only to CloudFormation |
+| Git sync policy | Change sets only on the `onward-aws-lab-journal-week-2` stack in eu-west-1; pass only this role, only to CloudFormation |
+| Region | Every EC2, load balancer, Auto Scaling, SSM, CloudFormation and EventBridge permission works only in eu-west-1. IAM and Budgets are global services, limited by name instead |
 
 ## Known limits (check during the first deploy and delete)
 
