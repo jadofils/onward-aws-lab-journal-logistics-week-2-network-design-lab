@@ -1,22 +1,22 @@
 # Week 2 Scripts
 
-Helper and evidence scripts for Week 2. They run in AWS CloudShell, like Week 1's ([onward-aws-lab-journal](https://github.com/jadofils/onward-aws-lab-journal/tree/main/week-1-secure-onboarding/scripts)).
+Evidence script for Week 2. It runs in AWS CloudShell, like Week 1's ([onward-aws-lab-journal](https://github.com/jadofils/onward-aws-lab-journal/tree/main/week-1-secure-onboarding/scripts)).
 
 | Script | Purpose | Changes AWS? |
 |--------|---------|--------------|
-| [create-network-deploy-role.sh](create-network-deploy-role.sh) | Creates `onward-cfn-network-deploy-role`, the role GitSync and CloudFormation use for the `onward-aws-lab-journal-week-2` stack. Separate from Week 1's role. `--delete` removes it again | Yes: one IAM role and two customer managed policies |
 | [evidence.sh](evidence.sh) | Runs every client check against the live stack and saves a report in `evidence-<timestamp>/` (gitignored). `-p` adds the package download test | No, unless `-p` (installs htop on one order server) |
 
 ## Run order
 
-1. In CloudShell: `bash create-network-deploy-role.sh`
+1. In the IAM console, create the role `onward-cfn-network-deploy-role` from the policy files in [../iam/](../iam/README.md), following the steps there.
 2. Create the GitSync stack `onward-aws-lab-journal-week-2` with deployment file `network-template-deployment.yaml`, and select `onward-cfn-network-deploy-role` as both the Git sync IAM role and the stack's IAM role.
+3. After the stack deploys, run `bash evidence.sh` in CloudShell.
 
-To record a different approver: `APPROVED_BY="name-or-role" bash create-network-deploy-role.sh`
+## What the deploy role can do
 
-## What the role can do
+Created in the IAM console from [../iam/](../iam/README.md), separate from Week 1's role, with customer managed policies only (no inline policies).
 
-Trust: only CloudFormation and the Git sync service, only from this account.
+Trust: only CloudFormation (`cloudformation.amazonaws.com`) and the Git sync service (`cloudformation.sync.codeconnections.amazonaws.com`), only from this account.
 
 | Statement | Scope |
 |-----------|-------|
@@ -28,7 +28,7 @@ Trust: only CloudFormation and the Git sync service, only from this account.
 | `ServerRole`, `ServerRolePolicy`, `PassServerRole` | Only `onward-*-ec2-ssm-role` and its instance profile; it can attach only `AmazonSSMManagedInstanceCore` and pass the role only to EC2 |
 | `ServiceLinkedRoles` | Only the Auto Scaling and Elastic Load Balancing service-linked roles |
 | `Budget` | Only `onward-*` budgets |
-| Git sync policy | Change sets only on the `STACK_NAME` stack (default `onward-aws-lab-journal-week-2`) and `onward-*-network` stacks; pass only this role, only to CloudFormation |
+| Git sync policy | Change sets only on the `onward-aws-lab-journal-week-2` stack and `onward-*-network` stacks; pass only this role, only to CloudFormation |
 
 ## Known limits (check during the first deploy and delete)
 
